@@ -1,23 +1,59 @@
-import logo from './logo.svg';
 import './App.css';
+import HeroSection from './Component/Hero/HeroSection';
+import Event from './Component/Events/Events';
+import AboutUs from './Component/AboutUs/AboutUs';
+import Contact from './Component/Contact/Contact';
+import EventDetails from './Component/EventDetails/EventDetails';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import Login from './Component/Login/Login';
+import Signup from './Component/Signup/Signup';
+import MembershipCard from './Component/MembershipCard/MembershipCard';
+import { AuthProvider } from './Component/AuthContext/AuthContext';
+
+function Home() {
+  return (
+    <>
+      <div id="home">
+        <HeroSection />
+      </div>
+      <div id="events">
+        <Event />
+      </div>
+      <div id="about">
+        <AboutUs />
+      </div>
+      <div id="contact">
+        <Contact />
+      </div>
+    </>
+  );
+}
 
 function App() {
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <AuthProvider>
+      <Router>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
+          <Route path="/eventdetails/:Id" element={<EventDetails />} />
+          <Route path="/membership" element={<MembershipCard />} />
+
+        </Routes>
+      </Router>
+      </AuthProvider>
+      {/* <Router>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
+          <Route path="/eventdetails/:eventId" element={<EventDetails />} />
+          <Route path="/membership" element={<MembershipCard />} />
+
+        </Routes> */}
+      {/* </Router> */}
     </div>
   );
 }

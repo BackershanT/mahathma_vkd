@@ -1,0 +1,129 @@
+.card-scene {
+  width: 1013px;
+  height: 639px;
+  background-color: #32f29a; /* Example background color */
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+
+  perspective: 1000px;
+  margin: 20px auto;
+}
+
+.card {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.8s;
+  cursor: pointer;
+}
+
+.card.is-flipped {
+  transform: rotateY(180deg);
+}
+
+.card-face {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 10px;
+  backface-visibility: hidden;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  display: flex;
+  align-items: center;
+  padding: 20px;
+  background-color: #f0f0f0;
+}
+
+.card-front {
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.card-back {
+  transform: rotateY(180deg);
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-start;     /* Align content to the left */
+  text-align: left;            /* Align text to the left */
+  padding: 20px;
+}
+.card-info {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  width: 100%;
+}
+
+.info-item {
+  display: flex;
+  gap: 10px;
+  line-height: 1.5;
+}
+
+.label {
+  font-weight: 600;
+  min-width: 120px;
+}
+
+.value {
+  flex: 1;
+  word-break: break-word;
+}
+
+
+.card-photo {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  font-size: 28px;
+  font-weight: bold;
+  color: white;
+  background-color: #333;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.card-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-family: 'Arial', sans-serif;
+  font-size: 14px;
+}
+
+/* Responsive */
+@media screen and (max-width: 768px) {
+  .card-scene {
+    width: 80%;
+    height: auto;
+    padding: 10px; /* Adjust padding */
+    margin: 10px auto; 
+  }
+
+  .card-info {
+    font-size: 13px;
+  }
+
+  .card-photo {
+    width: 50px;
+    height: 50px;
+    font-size: 22px;
+  }
+}
+
+
+@media screen and (max-width: 1024px) {
+  .card-container {
+    width: 90%; /* Adjust width for tablets */
+    height: auto; /* Let the height adjust */
+    padding: 15px; /* Add some padding */
+  }
+}

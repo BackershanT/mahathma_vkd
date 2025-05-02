@@ -1,0 +1,20 @@
+FloatingBar.css
+.floating-bar {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background-color: #4EDC91;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 30px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    cursor: pointer;
+    font-weight: bold;
+    transition: background 0.3s ease;
+    z-index: 999;
+  }
+  
+  .floating-bar:hover {
+    background-color: #3bbd7c;
+  }
+  
