@@ -3,6 +3,9 @@ import './HeroSection.css';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../AuthContext/AuthContext';
 import { MdCreditCard } from 'react-icons/md';
+import logo_text from '../../Assets/logo_text.png';
+import logo_big from '../../Assets/logo_big.png';
+
 
 
 function HeroSection() {
@@ -25,8 +28,8 @@ function HeroSection() {
   return (
     <div className="hero-container">
       <header className="navbar">
-        <img src={''} alt="Mahathma"
-        Name="logo" />
+        <img src={logo_text} alt="Mahathma"
+       className="logo"  />
         <nav>
           <ul>
             <li><a href="#home">Home</a></li>
@@ -48,7 +51,7 @@ function HeroSection() {
           <button className="explore-btn" onClick={()=>navigate('/signup')}>Join Community</button>
         </section>
         <section className="image-section">
-          <img src={''} alt="Mahathma" />
+          <img src={logo_big} alt="Mahathma" />
         </section>
       </main>
 

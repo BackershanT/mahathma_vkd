@@ -139,7 +139,10 @@
     min-width: 250px;
     text-align: center;
   }
-  
+  .logo{
+    width: 100px;
+    height: auto;
+  }
   .image-section img {
     max-width: 100%;
     height: auto;
@@ -155,7 +158,7 @@
   
     .text-section {
       margin: 0 auto;
-      text-align: center;
+      text-align: left;
     }
   
     .navbar {

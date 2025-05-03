@@ -76,10 +76,10 @@ const Contact = () => {
         <p>feel free to reach out on any Queries, feedback, or collaborations</p>
         <ul className="contact-list">
   <li>
-    <FaPhoneAlt /> +91 1234567890
+    <FaPhoneAlt /> +91 9946411699
   </li>
   <li>
-    <FaEnvelope /> <a href="mailto:backershan.t@gmail.com">mahathma@gmail.com</a>
+    <FaEnvelope /> <a href="mailto:backershan.t@gmail.com">mahathmavkd123@gmail.com</a>
   </li>
   <li>
     <FaMapMarkerAlt /> Mahathma Veliyancode,<br />
