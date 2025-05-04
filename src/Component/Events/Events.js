@@ -16,7 +16,7 @@ const Events = () => {
   };
   const [upcomingEvents, setUpcomingEvents] = useState([]);
   const [pastEvents, setPastEvents] = useState([]);
-  const [events, setEvents] = useState([]);
+  // const [events, setEvents] = useState([]);
 
   useEffect(() => {
     const fetchEvents = async () => {
@@ -34,7 +34,7 @@ const Events = () => {
 
  setUpcomingEvents(upcoming);
  setPastEvents(past);
- setEvents(eventsData); // Store all events for other use cases (optional)
+//  setEvents(eventsData); // Store all events for other use cases (optional)
 } catch (error) {
  console.error("Error fetching events:", error);
 }
