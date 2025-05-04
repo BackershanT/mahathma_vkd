@@ -1,0 +1,334 @@
+/* General layout */
+.dashboard {
+  display: flex;
+  flex-direction: row;
+  height: 100vh;
+  font-family: Arial, sans-serif;
+  background: #f0fff0;
+}
+
+/* Left panel: Members list */
+.left-panel {
+  flex: 1;
+  width: 25%;
+  min-width: 220px;
+  background-color: #2ecc71;
+  padding: 20px;
+  max-height: 100vh;
+  color: white;
+  overflow: hidden; /* Prevent outer scrollbars */
+  display: flex;
+  flex-direction: column;
+}
+.down-panel{
+  height:20vh;
+}
+.members-title {
+  font-size: 28px;
+  font-weight: bold;
+  margin-bottom: 10px;
+  text-align: center;
+}
+.members-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.members-list::-webkit-scrollbar-thumb {
+  background-color: #ccc;
+  border-radius: 4px;
+}
+.events-list {
+  max-height: 100vh; /* Adjust based on your layout */
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column; /* Stack events vertically */
+  gap: 1rem; /* Adjust spacing as needed */
+
+  padding-right: 8px;
+  margin-top: 1rem;
+}
+
+/* Optional: Nice scrollbar styling */
+.events-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.events-list::-webkit-scrollbar-thumb {
+  background-color: #bbb;
+  border-radius: 3px;
+}
+
+
+.members-list {
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 8px; 
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+/* Member card */
+.member-card {
+  display: flex;
+  align-items: center;
+  color: black;
+  gap: 10px;
+  background-color: #f0fff0;
+  padding: 10px;
+  border-radius: 10px;
+}
+
+.member-icon {
+  background-color: #c0392b;
+  color: white;
+  font-weight: bold;
+  font-size: 24px;
+  width: 40px;
+  height: 40px;
+  text-align: center;
+  line-height: 40px;
+  border-radius: 5px;
+}
+
+.main-panel {
+  flex-grow: 1;
+  padding: 20px;
+  background: linear-gradient(120deg, #f0fff0 60%, white 40%);
+  overflow-y: auto;
+}
+
+.stats {
+  display: flex;
+  justify-content: space-around;
+  flex-wrap: wrap;
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.info-box {
+  background-color: #d5d5d5;
+  padding: 20px;
+  text-align: center;
+  width: 150px;
+  border-radius: 5px;
+}
+
+.info-title {
+  font-weight: bold;
+  font-size: 20px;
+  margin-bottom: 10px;
+}
+
+.info-value {
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.blood-group-title {
+  font-size: 24px;
+  font-weight: bold;
+  margin: 20px 0 10px;
+  text-align: center;
+}
+
+.blood-group-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  max-height: 400px; 
+  overflow-y: auto; 
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 20px;
+}
+
+.group-title {
+  font-weight: bold;
+  font-size: 18px;
+  margin-bottom: 10px;
+}
+
+/* Blood card */
+.group-members {
+  max-height: 300px; 
+  overflow-y: auto; 
+  padding-right: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+/* Optional: Style for scrollbars */
+.blood-group-grid::-webkit-scrollbar {
+  width: 8px;
+}
+
+.blood-group-grid::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+}
+
+.blood-card {
+  display: flex;
+  align-items: center;
+  background-color: #e0e0e0;
+  padding: 10px;
+  border-radius: 6px;
+  gap: 10px;
+}
+
+.blood-icon {
+  background-color: purple;
+  color: white;
+  width: 30px;
+  height: 30px;
+  text-align: center;
+  line-height: 30px;
+  font-weight: bold;
+  border-radius: 5px;
+}
+
+.blood-name,
+.blood-mobile {
+  font-size: 14px;
+}
+
+/* ✅ Responsive adjustments */
+@media screen and (max-width: 768px) {
+  .dashboard {
+    flex-direction: column;
+  }
+
+  .left-panel {
+    width: 100%;
+    min-width: unset;
+    padding: 15px;
+  }
+
+  .main-panel {
+    padding: 15px;
+  }
+
+  .stats {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .info-box {
+    width: 80%;
+    max-width: 300px;
+  }
+
+  .blood-group-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* Modal styling */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgb(0, 0, 0);
+  background-color: rgba(0, 0, 0, 0.4);
+  justify-content: center;
+  align-items: center;
+}
+
+.modal.open {
+  display: flex;
+}
+
+.modal-content {
+  background-color: white;
+  margin: auto;
+  padding: 20px;
+  border: 1px solid #888;
+  width: 400px;
+  position: relative;
+}
+
+.modal .close {
+  position: absolute;
+  top: 10px;
+  right: 20px;
+  font-size: 30px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.modal input,
+.modal textarea {
+  width: 100%;
+  padding: 10px;
+  margin: 10px 0;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.modal button {
+  width: 100%;
+  padding: 10px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+.modal button:hover {
+  background-color: #45a049;
+}
+
+.add-event-btn {
+  background-color: #4CAF50;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.add-event-btn:hover {
+  background-color: #45a049;
+}
+
+/* ================= Responsive Adjustments ================ */
+@media screen and (max-width: 768px) {
+  .dashboard {
+    flex-direction: column;
+  }
+
+  .left-panel {
+    width: 100%;
+    padding: 15px;
+    min-height: 200px;
+  }
+
+  .main-panel {
+    padding: 15px;
+  }
+
+  .stats {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .info-box {
+    width: 80%;
+    max-width: 300px;
+  }
+
+  .blood-group-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .modal-content {
+    width: 90%;
+  }
+}

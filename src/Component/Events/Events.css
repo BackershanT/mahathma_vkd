@@ -21,6 +21,17 @@
   overflow-x: scroll; 
 }
 
+.past-section {
+  background-color: #32f29a;
+  justify-content: space-around;
+  border-top-left-radius: 25px;
+  border-bottom-left-radius: 25px;
+  flex: 2;
+  padding: 40px 0px;
+  min-width: 300px;
+  overflow-x: scroll; 
+  min-height: 50%;
+}
 .upcoming-section h2 {
   font-size: 2rem;
   margin-bottom: 20px;
@@ -276,7 +287,7 @@ body, html {
   .upcoming-section,
   .past-section {
     max-width: 100%;
-    border-radius: 0;
+    border-radius: 15px;
   }
 
   .event-card {

@@ -7,14 +7,19 @@ import { useNavigate } from "react-router-dom";
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const navigate = useNavigate(); // for navigation after login
+  const navigate = useNavigate(); 
 
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      const userCredential= await signInWithEmailAndPassword(auth, email, password);
+      const userEmail = userCredential.user.email;
+
       alert("Login successful!");
-      navigate('/'); // redirect to membership page
+      if(userEmail === 'admin@gmail.com'){
+        navigate('/dashboard');
+      }else{
+      navigate('/'); }
     } catch (error) {
       alert("Login failed: " + error.message);
     }

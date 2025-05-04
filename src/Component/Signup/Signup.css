@@ -3,6 +3,7 @@
   justify-content: center;
   align-items: center;
   min-height: 100vh;
+  padding: 20px;
   background-color: #3bbd7c;
 }
 
@@ -20,8 +21,10 @@
 .signup-form h2 {
   margin-bottom: 20px;
   text-align: center;
+  font-size: 28px;
 }
 
+/* Inputs, Textareas, Selects */
 .signup-form input,
 .signup-form textarea,
 .signup-form select {
@@ -30,8 +33,11 @@
   border: 1px solid #ccc;
   border-radius: 8px;
   font-size: 16px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
+/* Submit Button */
 .signup-form button {
   background-color: #4EDC91;
   color: white;
@@ -40,13 +46,14 @@
   border-radius: 8px;
   cursor: pointer;
   font-size: 16px;
+  transition: background-color 0.3s ease;
 }
 
 .signup-form button:hover {
   background-color: #3bbd7c;
 }
 
-/* New class for input row */
+/* Horizontal row for grouped inputs */
 .input-row {
   display: flex;
   gap: 20px;
@@ -56,14 +63,27 @@
 .input-row input,
 .input-row select {
   flex: 1;
+  min-width: 0;
 }
 
 .input-row textarea {
   width: 100%;
 }
 
+/* ✅ Responsive Design */
 @media (max-width: 768px) {
-  /* On mobile, stack the fields */
+  .signup-container {
+    padding: 10px;
+  }
+
+  .signup-form {
+    padding: 30px 20px;
+  }
+
+  .signup-form h2 {
+    font-size: 22px;
+  }
+
   .input-row {
     flex-direction: column;
   }
@@ -76,5 +96,6 @@
 
   .signup-form button {
     font-size: 14px;
+    padding: 10px;
   }
 }

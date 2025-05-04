@@ -25,6 +25,18 @@ function MemberCard() {
     };
     fetchUserData();
   }, []);
+  const formatDate = (dateStr) => {
+    const date = new Date(dateStr);
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0'); // Month is 0-indexed
+    const year = date.getFullYear();
+    return `${day}-${month}-${year}`;
+  };
+  
+
+  if (!userData) {
+    return <div className="card-container">Loading...</div>;
+  }
 
   return (
     <div className="card-container">
@@ -37,9 +49,9 @@ function MemberCard() {
           </div>
           <div className="info">
             <p><strong>Id</strong>: 001</p>
-            <p><strong>Name</strong>: {userData.name} </p>
+            <p><strong>Name</strong>: {userData.name} {userData.lastName} </p>
             <p><strong>Blood Group</strong>: {userData.bloodGroup} </p>
-            <p><strong>Date of Birth</strong>: {userData.dob}</p>
+            <p><strong>Date of Birth</strong>: {formatDate(userData.dob)}</p>
           </div>
         </div>
 

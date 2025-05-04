@@ -24,13 +24,13 @@ const EventDetails = () => {
       <p className="malayalam-text">
        {event.description}
       </p>
-      <div className="gray-boxes">
+      {/* <div className="gray-boxes"> */}
         {Array(6)
           .fill(0)
           .map((_, idx) => (
             <div className="gray-box" key={idx}></div>
           ))}
-      </div>
+      {/* </div> */}
     </div>
   </div>
 

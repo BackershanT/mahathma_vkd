@@ -9,6 +9,7 @@ import Login from './Component/Login/Login';
 import Signup from './Component/Signup/Signup';
 import MembershipCard from './Component/MembershipCard/MembershipCard';
 import { AuthProvider } from './Component/AuthContext/AuthContext';
+import  Dashboard  from './Component/Dashboard/Dashboard';
 
 function Home() {
   return (
@@ -40,6 +41,9 @@ function App() {
           <Route path="/signup" element={<Signup />} />
           <Route path="/eventdetails/:Id" element={<EventDetails />} />
           <Route path="/membership" element={<MembershipCard />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+
+
 
         </Routes>
       </Router>
