@@ -1,15 +1,17 @@
 import './App.css';
 import HeroSection from './Component/Hero/HeroSection';
+import JoinMission from './Component/JoinMission/JoinMission';
 import Event from './Component/Events/Events';
 import AboutUs from './Component/AboutUs/AboutUs';
 import Contact from './Component/Contact/Contact';
+import Footer from './Component/Footer/Footer';
 import EventDetails from './Component/EventDetails/EventDetails';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import Login from './Component/Login/Login';
 import Signup from './Component/Signup/Signup';
 import MembershipCard from './Component/MembershipCard/MembershipCard';
 import { AuthProvider } from './Component/AuthContext/AuthContext';
-import  Dashboard  from './Component/Dashboard/Dashboard';
+import Dashboard from './Component/Dashboard/Dashboard';
 
 function Home() {
   return (
@@ -17,6 +19,7 @@ function Home() {
       <div id="home">
         <HeroSection />
       </div>
+      <JoinMission />
       <div id="events">
         <Event />
       </div>
@@ -26,6 +29,7 @@ function Home() {
       <div id="contact">
         <Contact />
       </div>
+      <Footer />
     </>
   );
 }
