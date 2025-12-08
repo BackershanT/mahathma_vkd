@@ -112,10 +112,17 @@ const Events = () => {
         });
         const currentDate = new Date().getTime();
 
-        const upcoming = eventsData.filter(event => parseDate(event.date) > currentDate);
-        const past = eventsData.filter(event => parseDate(event.date) <= currentDate);
+        // Filter events based on date (automatically categorize)
+        const upcoming = eventsData.filter(event => {
+          const eventDate = parseDate(event.date);
+          return eventDate > currentDate;
+        });
+        const past = eventsData.filter(event => {
+          const eventDate = parseDate(event.date);
+          return eventDate <= currentDate;
+        });
 
-        // Use dummy data if no events from Firebase, otherwise merge
+        // Use dummy data if no events from Firebase
         setUpcomingEvents(upcoming.length > 0 ? upcoming : dummyUpcomingEvents);
         setPastEvents(past.length > 0 ? past : dummyPastEvents);
       } catch (error) {

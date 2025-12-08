@@ -2,6 +2,7 @@ import { initializeApp } from "firebase/app";
 // import { getAnalytics } from "firebase/analytics";
 import { getAuth,createUserWithEmailAndPassword } from "firebase/auth";
 import { getFirestore, doc, setDoc, collection, getDocs, addDoc, deleteDoc, updateDoc, query, orderBy } from "firebase/firestore";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
 
 // TODO: Add SDKs for Firebase products that you want to use
@@ -24,4 +25,5 @@ const app = initializeApp(firebaseConfig);
 // const analytics = getAnalytics(app);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
-export { createUserWithEmailAndPassword, setDoc, doc, collection, getDocs, addDoc, deleteDoc, updateDoc, query, orderBy };
+export const storage = getStorage(app);
+export { createUserWithEmailAndPassword, setDoc, doc, collection, getDocs, addDoc, deleteDoc, updateDoc, query, orderBy, ref, uploadBytes, getDownloadURL };
