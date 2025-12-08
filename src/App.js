@@ -10,8 +10,10 @@ import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import Login from './Component/Login/Login';
 import Signup from './Component/Signup/Signup';
 import MembershipCard from './Component/MembershipCard/MembershipCard';
+import MembershipForm from './Component/MembershipForm/MembershipForm';
 import { AuthProvider } from './Component/AuthContext/AuthContext';
 import Dashboard from './Component/Dashboard/Dashboard';
+import Setup from './Component/Setup/Setup';
 
 function Home() {
   return (
@@ -45,7 +47,9 @@ function App() {
           <Route path="/signup" element={<Signup />} />
           <Route path="/eventdetails/:Id" element={<EventDetails />} />
           <Route path="/membership" element={<MembershipCard />} />
+          <Route path="/membership-form" element={<MembershipForm />} />
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/setup" element={<Setup />} />
 
 
 

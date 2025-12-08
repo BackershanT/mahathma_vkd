@@ -67,10 +67,12 @@
   gap: 2rem;
   overflow-x: auto;
   overflow-y: hidden;
-  padding-bottom: 1rem;
+  padding: 1rem 0 2rem 0;
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
-  scroll-snap-type: x proximity;
+  scroll-snap-type: x mandatory;
+  scroll-padding: 0 1rem;
+  position: relative;
 }
 
 .events-grid::-webkit-scrollbar {
@@ -102,8 +104,9 @@
   flex-direction: column;
   border: none;
   flex: 0 0 calc(33.333% - 1.34rem);
-  width: 380px;
-  max-width: 100%;
+  width: calc(33.333% - 1.34rem);
+  min-width: calc(33.333% - 1.34rem);
+  max-width: calc(33.333% - 1.34rem);
   scroll-snap-align: start;
 }
 
@@ -275,9 +278,8 @@
   }
 
   .event-card {
-    flex: 0 0 calc(50% - 0.75rem);
     width: 350px;
-    min-width: 300px;
+    min-width: 350px;
   }
 
   .event-image-container {
@@ -292,12 +294,15 @@
 
   .events-grid {
     gap: 1.5rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
   }
 
   .event-card {
-    flex: 0 0 calc(85% - 0.75rem);
-    width: 320px;
-    min-width: 280px;
+    flex: 0 0 calc(50% - 0.75rem);
+    width: calc(50% - 0.75rem);
+    min-width: calc(50% - 0.75rem);
+    max-width: calc(50% - 0.75rem);
   }
 
   .events-tabs {
@@ -333,12 +338,15 @@
 
   .events-grid {
     gap: 1rem;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
   }
 
   .event-card {
     flex: 0 0 calc(90% - 0.5rem);
-    width: 280px;
-    min-width: 260px;
+    width: calc(90% - 0.5rem);
+    min-width: calc(90% - 0.5rem);
+    max-width: calc(90% - 0.5rem);
   }
 
   .event-content {

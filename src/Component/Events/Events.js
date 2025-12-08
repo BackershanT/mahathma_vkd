@@ -154,9 +154,9 @@ const Events = () => {
   const eventsPerPage = 3;
   const totalPages = Math.ceil(displayEvents.length / eventsPerPage);
 
-  // Auto-scroll functionality
+  // Auto-scroll functionality - scroll by pages (3 cards at a time)
   useEffect(() => {
-    if (displayEvents.length <= eventsPerPage || isPaused) return;
+    if (displayEvents.length <= eventsPerPage || isPaused || !eventsGridRef.current) return;
 
     const scrollInterval = setInterval(() => {
       setCurrentIndex((prevIndex) => {
@@ -184,6 +184,15 @@ const Events = () => {
     }
   }, [activeTab]);
 
+  const handleScroll = () => {
+    if (eventsGridRef.current) {
+      const scrollLeft = eventsGridRef.current.scrollLeft;
+      const containerWidth = eventsGridRef.current.offsetWidth;
+      const newIndex = Math.round(scrollLeft / containerWidth);
+      setCurrentIndex(newIndex);
+    }
+  };
+
   const handleIndicatorClick = (index) => {
     setCurrentIndex(index);
     if (eventsGridRef.current) {
@@ -193,15 +202,6 @@ const Events = () => {
         left: scrollAmount,
         behavior: 'smooth'
       });
-    }
-  };
-
-  const handleScroll = () => {
-    if (eventsGridRef.current) {
-      const scrollLeft = eventsGridRef.current.scrollLeft;
-      const containerWidth = eventsGridRef.current.offsetWidth;
-      const newIndex = Math.round(scrollLeft / containerWidth);
-      setCurrentIndex(newIndex);
     }
   };
 

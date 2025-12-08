@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { FaUserPlus, FaTint } from 'react-icons/fa';
 import { AuthContext } from '../AuthContext/AuthContext';
 import { db } from '../Firebase/Firebase';
-import { doc, updateDoc, getDoc } from 'firebase/firestore';
+import { doc, updateDoc, getDocs, collection } from 'firebase/firestore';
 
 const JoinMission = () => {
   const navigate = useNavigate();
@@ -25,7 +25,7 @@ const JoinMission = () => {
             </div>
             <h3>Become a Member</h3>
             <p>Join our community of 200+ active members and participate in meaningful activities that make a real difference.</p>
-            <button className="card-button membership-btn" onClick={() => navigate('/signup')}>
+            <button className="card-button membership-btn" onClick={() => navigate('/membership-form')}>
               Apply for Membership
             </button>
           </div>
@@ -36,7 +36,39 @@ const JoinMission = () => {
             </div>
             <h3>Blood Donation Program</h3>
             <p>Register as a blood donor and save lives. Your contribution can make a critical difference in emergency situations.</p>
-            <button className="card-button donation-btn" onClick={() => navigate('/signup')}>
+            <button 
+              className="card-button donation-btn" 
+              onClick={async () => {
+                if (currentUser) {
+                  try {
+                    // Find user by email in Firestore
+                    const usersSnapshot = await getDocs(collection(db, 'users'));
+                    let userDoc = null;
+                    let userRef = null;
+                    
+                    usersSnapshot.forEach((docSnapshot) => {
+                      if (docSnapshot.data().email === currentUser.email) {
+                        userDoc = docSnapshot;
+                        userRef = doc(db, 'users', docSnapshot.id);
+                      }
+                    });
+                    
+                    if (userDoc && userRef) {
+                      await updateDoc(userRef, { isBloodDonor: true });
+                      alert('You have been registered as a blood donor!');
+                    } else {
+                      alert('Please complete your membership application first.');
+                      navigate('/membership-form');
+                    }
+                  } catch (error) {
+                    console.error('Error registering as donor:', error);
+                    alert('Error registering as donor. Please try again.');
+                  }
+                } else {
+                  navigate('/login');
+                }
+              }}
+            >
               Register as Donor
             </button>
           </div>

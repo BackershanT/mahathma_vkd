@@ -1,30 +1,38 @@
-import React, { useState,useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import './MembershipCard.css';
-import {auth,db} from '../Firebase/Firebase';
-import {doc,getDoc} from 'firebase/firestore';
+import { db } from '../Firebase/Firebase';
+import { collection, getDocs, query, where } from 'firebase/firestore';
+import { AuthContext } from '../AuthContext/AuthContext';
 const getInitial = (name) => name?.[0]?.toUpperCase() || '?';
 
 function MemberCard() {
   const [userData, setUserData] = useState(null);
-
+  const { currentUser } = useContext(AuthContext);
   const [flipped, setFlipped] = useState(false);
 
   const handleCardClick = () => {
     setFlipped(!flipped);
   };
+  
   useEffect(() => {
     const fetchUserData = async () => {
-      const user = auth.currentUser;
-      if (user) {
-        const userRef = doc(db, 'users', user.uid);
-        const userDoc = await getDoc(userRef);
-        if (userDoc.exists()) {
-          setUserData(userDoc.data());
+      if (currentUser && currentUser.email) {
+        try {
+          const usersQuery = query(collection(db, 'users'), where('email', '==', currentUser.email));
+          const usersSnapshot = await getDocs(usersQuery);
+          
+          if (!usersSnapshot.empty) {
+            usersSnapshot.forEach((doc) => {
+              setUserData(doc.data());
+            });
+          }
+        } catch (error) {
+          console.error('Error fetching user data:', error);
         }
       }
     };
     fetchUserData();
-  }, []);
+  }, [currentUser]);
   const formatDate = (dateStr) => {
     const date = new Date(dateStr);
     const day = String(date.getDate()).padStart(2, '0');

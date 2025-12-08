@@ -93,6 +93,22 @@ const Footer = () => {
             <p>Veliyancode Kinar, Veliyancode P.O,<br />Malappuram, Kerala - 679579</p>
           </div>
         </div>
+
+        {/* Mobile Follow Us Section - appears below map */}
+        <div className="footer-social-mobile">
+          <h4>Follow Us</h4>
+          <div className="social-icons">
+            <a href="https://www.facebook.com" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
+              <FaFacebookF />
+            </a>
+            <a href="https://www.instagram.com" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+              <FaInstagram />
+            </a>
+            <a href="https://www.twitter.com" target="_blank" rel="noopener noreferrer" aria-label="Twitter">
+              <FaXTwitter />
+            </a>
+          </div>
+        </div>
       </div>
 
       <div className="footer-bottom">

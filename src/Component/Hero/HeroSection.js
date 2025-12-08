@@ -6,19 +6,39 @@ import { MdCreditCard } from 'react-icons/md';
 import { FaBars, FaTimes } from 'react-icons/fa';
 import logo_text from '../../Assets/logo_text.png';
 import logo_big from '../../Assets/logo_big.png';
+import { db } from '../Firebase/Firebase';
+import { collection, getDocs, query, orderBy } from 'firebase/firestore';
+
+const defaultHeroImages = [
+  'https://images.unsplash.com/photo-1511632765486-a01980e01a18?w=1920',
+  'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=1920',
+  'https://images.unsplash.com/photo-1559027615-cd4628902d4a?w=1920'
+];
 
 function HeroSection() {
   const navigate = useNavigate();
   const { currentUser } = useContext(AuthContext);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [heroImages, setHeroImages] = useState(defaultHeroImages);
   
-  // Array of hero images - you can add more images here
-  const heroImages = [
-    'https://images.unsplash.com/photo-1511632765486-a01980e01a18?w=1920',
-    'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=1920',
-    'https://images.unsplash.com/photo-1559027615-cd4628902d4a?w=1920'
-  ];
+  useEffect(() => {
+    const fetchCarousel = async () => {
+      try {
+        const carouselSnapshot = await getDocs(query(collection(db, 'carousel'), orderBy('order', 'asc')));
+        const carouselData = [];
+        carouselSnapshot.forEach((doc) => {
+          carouselData.push(doc.data().imageUrl);
+        });
+        if (carouselData.length > 0) {
+          setHeroImages(carouselData);
+        }
+      } catch (error) {
+        console.error('Error fetching carousel:', error);
+      }
+    };
+    fetchCarousel();
+  }, []);
   
   // Auto-scroll images every 3 seconds
   useEffect(() => {

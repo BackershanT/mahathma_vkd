@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import './Signup.css';
-import { auth, db } from '../Firebase/Firebase'; // Correct Firebase imports
-import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { doc, setDoc } from 'firebase/firestore';
+import { db } from '../Firebase/Firebase';
+import { collection, addDoc } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
 
 
@@ -41,10 +40,6 @@ const Signup = () => {
     }
 
     try {
-      // Create user
-      const userCredential = await createUserWithEmailAndPassword(auth, form.email, form.password);
-      const user = userCredential.user;
-
       // Prepare data
       const userData = {
         name: form.name,
@@ -62,14 +57,16 @@ const Signup = () => {
         status: form.status,
         availability: form.availability,
         createdAt: new Date().toISOString(),
+        password: form.password, // Store password (in production, this should be hashed)
+        isAdmin: false,
+        isBloodDonor: false,
       };
 
-      // Store in Firestore with UID
-      await setDoc(doc(db, 'users', user.uid), userData);
+      // Store in Firestore
+      await addDoc(collection(db, 'users'), userData);
 
-      alert('Signup successful!');
+      alert('Signup successful! Please login with your credentials.');
       navigate('/login');
-      // redirect or clear form here if needed
     } catch (error) {
       console.error('Error signing up:', error.message);
       alert('Signup failed: ' + error.message);
