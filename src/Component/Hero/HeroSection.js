@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../AuthContext/AuthContext';
 import { MdCreditCard } from 'react-icons/md';
 import { FaBars, FaTimes } from 'react-icons/fa';
-import logo_text from '../../Assets/logo_text.png';
 import logo_big from '../../Assets/logo_big.png';
 import { db } from '../Firebase/Firebase';
 import { collection, getDocs, query, orderBy } from 'firebase/firestore';

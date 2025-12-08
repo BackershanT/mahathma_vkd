@@ -14,6 +14,7 @@ import MembershipForm from './Component/MembershipForm/MembershipForm';
 import { AuthProvider } from './Component/AuthContext/AuthContext';
 import Dashboard from './Component/Dashboard/Dashboard';
 import Setup from './Component/Setup/Setup';
+import FloatingActionButton from './Component/FloatingActionButton/FloatingActionButton';
 
 function Home() {
   return (
@@ -32,6 +33,7 @@ function Home() {
         <Contact />
       </div>
       <Footer />
+      <FloatingActionButton />
     </>
   );
 }

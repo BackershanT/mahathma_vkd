@@ -3,7 +3,7 @@ import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../Firebase/Firebase';
 import "./Events.css";
 import { useNavigate } from "react-router-dom";
-import { FaMapMarkerAlt, FaClock, FaCalendar } from 'react-icons/fa';
+import { FaMapMarkerAlt, FaCalendar } from 'react-icons/fa';
 
 // Dummy events data
 const dummyUpcomingEvents = [
@@ -135,15 +135,6 @@ const Events = () => {
 
     fetchEvents();
   }, []);
-
-  const formatDate = (dateStr) => {
-    const date = new Date(dateStr);
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
-                    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    const month = months[date.getMonth()];
-    const day = date.getDate();
-    return `${month} ${day}`;
-  };
 
   const formatFullDate = (dateStr) => {
     const date = new Date(dateStr);

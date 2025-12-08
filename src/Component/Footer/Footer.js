@@ -1,11 +1,9 @@
 import React from 'react';
 import './Footer.css';
 import logo_big from '../../Assets/logo_big.png';
-import { useNavigate } from 'react-router-dom';
 import { FaFacebookF, FaInstagram, FaXTwitter, FaMapPin } from 'react-icons/fa6';
 
 const Footer = () => {
-  const navigate = useNavigate();
 
   const scrollToSection = (sectionId) => {
     const element = document.getElementById(sectionId);
