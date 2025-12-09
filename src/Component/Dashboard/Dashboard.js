@@ -1179,9 +1179,9 @@ const BloodDonorsTab = ({ bloodDonors }) => {
 
   const downloadPDF = () => {
     // Dynamic import for jsPDF
-    import('jspdf').then((jsPDF) => {
+    import('jspdf').then((jsPDFModule) => {
       import('jspdf-autotable').then((autoTable) => {
-        const { jsPDF } = jsPDF;
+        const jsPDF = jsPDFModule.default;
         const doc = new jsPDF();
         
         // Title
