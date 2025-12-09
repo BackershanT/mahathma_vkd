@@ -20,17 +20,23 @@ function HeroSection() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [heroImages, setHeroImages] = useState(defaultHeroImages);
+  const [carouselItems, setCarouselItems] = useState([]);
   
   useEffect(() => {
     const fetchCarousel = async () => {
       try {
         const carouselSnapshot = await getDocs(query(collection(db, 'carousel'), orderBy('order', 'asc')));
         const carouselData = [];
+        const itemsData = [];
         carouselSnapshot.forEach((doc) => {
-          carouselData.push(doc.data().imageUrl);
+          const data = doc.data();
+          itemsData.push(data);
+          // For backward compatibility, use imageUrl if available, otherwise videoUrl
+          carouselData.push(data.imageUrl || data.videoUrl || '');
         });
         if (carouselData.length > 0) {
           setHeroImages(carouselData);
+          setCarouselItems(itemsData);
         }
       } catch (error) {
         console.error('Error fetching carousel:', error);
@@ -68,8 +74,26 @@ function HeroSection() {
     setCurrentImageIndex(index);
   };
 
+  const currentItem = carouselItems[currentImageIndex];
+  const isVideo = currentItem?.mediaType === 'video';
+
   return (
-    <div className="hero-container" style={{ backgroundImage: `url(${heroImages[currentImageIndex]})` }}>
+    <div className="hero-container">
+      {isVideo ? (
+        <video 
+          className="hero-video" 
+          src={currentItem.videoUrl || currentItem.imageUrl} 
+          autoPlay 
+          loop 
+          muted 
+          playsInline
+        />
+      ) : (
+        <div 
+          className="hero-background" 
+          style={{ backgroundImage: `url(${heroImages[currentImageIndex]})` }}
+        />
+      )}
       <header className="navbar">
         <div className="logo-container">
           <img src={logo_big} alt="Mahathma Veliyancode" className="logo-icon" />

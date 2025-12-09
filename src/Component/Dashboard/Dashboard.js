@@ -3,7 +3,7 @@ import { db, storage } from '../Firebase/Firebase';
 import { collection, getDocs, addDoc, deleteDoc, doc, updateDoc, query, orderBy } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useNavigate } from 'react-router-dom';
-import { FaUsers, FaCalendarAlt, FaImages, FaSignOutAlt, FaEdit, FaTrash, FaPlus, FaTimes, FaEye } from 'react-icons/fa';
+import { FaUsers, FaCalendarAlt, FaImages, FaSignOutAlt, FaEdit, FaTrash, FaPlus, FaTimes, FaEye, FaPlay, FaTint, FaFilePdf, FaFileExcel } from 'react-icons/fa';
 import { AuthContext } from '../AuthContext/AuthContext';
 import './Dashboard.css';
 
@@ -11,6 +11,7 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const { currentUser, logout } = useContext(AuthContext);
   const [activeTab, setActiveTab] = useState('members');
+  const [bloodDonors, setBloodDonors] = useState([]);
   
   // Check if user is admin
   useEffect(() => {
@@ -25,15 +26,34 @@ const Dashboard = () => {
   const [isEventModalOpen, setIsEventModalOpen] = useState(false);
   const [isCarouselModalOpen, setIsCarouselModalOpen] = useState(false);
   const [isEventDetailModalOpen, setIsEventDetailModalOpen] = useState(false);
+  const [isCarouselPreviewOpen, setIsCarouselPreviewOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState(null);
   const [editingCarousel, setEditingCarousel] = useState(null);
   const [viewingEvent, setViewingEvent] = useState(null);
+  const [viewingCarousel, setViewingCarousel] = useState(null);
 
   useEffect(() => {
     fetchMembers();
     fetchEvents();
     fetchCarousel();
+    fetchBloodDonors();
   }, []);
+
+  const fetchBloodDonors = async () => {
+    try {
+      const membersSnapshot = await getDocs(collection(db, 'users'));
+      const donorsData = [];
+      membersSnapshot.forEach((docSnapshot) => {
+        const data = { id: docSnapshot.id, ...docSnapshot.data() };
+        if (data.isBloodDonor) {
+          donorsData.push(data);
+        }
+      });
+      setBloodDonors(donorsData);
+    } catch (error) {
+      console.error('Error fetching blood donors:', error);
+    }
+  };
 
   const fetchMembers = async () => {
     try {
@@ -221,6 +241,12 @@ const Dashboard = () => {
         >
           <FaImages /> Carousel
         </button>
+        <button
+          className={`tab-btn ${activeTab === 'bloodDonors' ? 'active' : ''}`}
+          onClick={() => setActiveTab('bloodDonors')}
+        >
+          <FaTint /> Blood Donors
+        </button>
       </div>
 
       <div className="dashboard-content">
@@ -263,6 +289,10 @@ const Dashboard = () => {
               setEditingCarousel(item);
               setIsCarouselModalOpen(true);
             }}
+            onView={(item) => {
+              setViewingCarousel(item);
+              setIsCarouselPreviewOpen(true);
+            }}
             onDelete={handleDeleteCarousel}
             onClose={() => {
               setIsCarouselModalOpen(false);
@@ -270,6 +300,10 @@ const Dashboard = () => {
             }}
             onSave={fetchCarousel}
           />
+        )}
+
+        {activeTab === 'bloodDonors' && (
+          <BloodDonorsTab bloodDonors={bloodDonors} />
         )}
       </div>
 
@@ -307,6 +341,22 @@ const Dashboard = () => {
             setIsEventDetailModalOpen(false);
             setEditingEvent(event);
             setIsEventModalOpen(true);
+          }}
+        />
+      )}
+
+      {isCarouselPreviewOpen && (
+        <CarouselPreviewModal
+          item={viewingCarousel}
+          onClose={() => {
+            setIsCarouselPreviewOpen(false);
+            setViewingCarousel(null);
+          }}
+          onEdit={(item) => {
+            setViewingCarousel(null);
+            setIsCarouselPreviewOpen(false);
+            setEditingCarousel(item);
+            setIsCarouselModalOpen(true);
           }}
         />
       )}
@@ -453,7 +503,7 @@ const EventsTab = ({ events, onAdd, onEdit, onView, onDelete, onSave }) => {
   );
 };
 
-const CarouselTab = ({ carouselItems, onAdd, onEdit, onDelete, onSave }) => {
+const CarouselTab = ({ carouselItems, onAdd, onEdit, onView, onDelete, onSave }) => {
   return (
     <div className="carousel-tab">
       <div className="section-header">
@@ -464,23 +514,50 @@ const CarouselTab = ({ carouselItems, onAdd, onEdit, onDelete, onSave }) => {
       </div>
 
       <div className="carousel-grid">
-        {carouselItems.map((item) => (
-          <div key={item.id} className="carousel-card">
-            <img src={item.imageUrl} alt={item.title || 'Carousel'} />
-            <div className="carousel-card-content">
-              <h3>{item.title || 'Untitled'}</h3>
-              {item.description && <p>{item.description.substring(0, 100)}...</p>}
-              <div className="carousel-actions">
-                <button className="edit-btn" onClick={() => onEdit(item)}>
-                  <FaEdit /> Edit
-                </button>
-                <button className="delete-btn" onClick={() => onDelete(item.id)}>
-                  <FaTrash /> Delete
-                </button>
+        {carouselItems.length > 0 ? (
+          carouselItems.map((item) => {
+            const isVideo = item.mediaType === 'video' || item.videoUrl;
+            const mediaUrl = isVideo ? (item.videoUrl || item.imageUrl) : item.imageUrl;
+            
+            return (
+              <div key={item.id} className="carousel-card">
+                <div className="carousel-media-container">
+                  {isVideo ? (
+                    <video src={mediaUrl} alt={item.title || 'Carousel'} muted>
+                      Your browser does not support the video tag.
+                    </video>
+                  ) : (
+                    <img src={mediaUrl} alt={item.title || 'Carousel'} />
+                  )}
+                  <div className="media-type-badge">
+                    {isVideo ? <FaPlay /> : <FaImages />}
+                    <span>{isVideo ? 'Video' : 'Image'}</span>
+                  </div>
+                </div>
+                <div className="carousel-card-content">
+                  <h3>{item.title || 'Untitled'}</h3>
+                  {item.description && <p>{item.description.substring(0, 100)}...</p>}
+                  <p className="order-info">Order: {item.order || 0}</p>
+                  <div className="carousel-actions">
+                    <button className="view-btn" onClick={() => onView(item)}>
+                      <FaEye /> Preview
+                    </button>
+                    <button className="edit-btn" onClick={() => onEdit(item)}>
+                      <FaEdit /> Edit
+                    </button>
+                    <button className="delete-btn" onClick={() => onDelete(item.id)}>
+                      <FaTrash /> Delete
+                    </button>
+                  </div>
+                </div>
               </div>
-            </div>
+            );
+          })
+        ) : (
+          <div className="no-carousel-message">
+            <p>No carousel items found. Click "Add Carousel Item" to create your first item.</p>
           </div>
-        ))}
+        )}
       </div>
     </div>
   );
@@ -695,41 +772,141 @@ const EventModal = ({ event, onClose, onSave }) => {
 const CarouselModal = ({ item, onClose, onSave }) => {
   const [formData, setFormData] = useState({
     imageUrl: '',
+    videoUrl: '',
+    mediaType: 'image',
     title: '',
     description: '',
     order: 0,
   });
+  const [imageFile, setImageFile] = useState(null);
+  const [videoFile, setVideoFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState('');
+  const [videoPreview, setVideoPreview] = useState('');
+  const [isUploading, setIsUploading] = useState(false);
 
   useEffect(() => {
     if (item) {
+      const isVideo = item.mediaType === 'video' || item.videoUrl;
       setFormData({
         imageUrl: item.imageUrl || '',
+        videoUrl: item.videoUrl || '',
+        mediaType: isVideo ? 'video' : 'image',
         title: item.title || '',
         description: item.description || '',
         order: item.order || 0,
       });
+      if (isVideo && item.videoUrl) {
+        setVideoPreview(item.videoUrl);
+      } else if (item.imageUrl) {
+        setImagePreview(item.imageUrl);
+      }
     }
   }, [item]);
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    if (e.target.name === 'imageFile') {
+      const file = e.target.files[0];
+      if (file) {
+        setImageFile(file);
+        setFormData({ ...formData, mediaType: 'image' });
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setImagePreview(reader.result);
+        };
+        reader.readAsDataURL(file);
+      }
+    } else if (e.target.name === 'videoFile') {
+      const file = e.target.files[0];
+      if (file) {
+        setVideoFile(file);
+        setFormData({ ...formData, mediaType: 'video' });
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setVideoPreview(reader.result);
+        };
+        reader.readAsDataURL(file);
+      }
+    } else if (e.target.name === 'mediaType') {
+      setFormData({ ...formData, mediaType: e.target.value });
+    } else {
+      setFormData({ ...formData, [e.target.name]: e.target.value });
+    }
+  };
+
+  const uploadImage = async (file) => {
+    if (!file) return null;
+    try {
+      const imageRef = ref(storage, `carousel/images/${Date.now()}_${file.name}`);
+      await uploadBytes(imageRef, file);
+      const downloadURL = await getDownloadURL(imageRef);
+      return downloadURL;
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      throw error;
+    }
+  };
+
+  const uploadVideo = async (file) => {
+    if (!file) return null;
+    try {
+      const videoRef = ref(storage, `carousel/videos/${Date.now()}_${file.name}`);
+      await uploadBytes(videoRef, file);
+      const downloadURL = await getDownloadURL(videoRef);
+      return downloadURL;
+    } catch (error) {
+      console.error('Error uploading video:', error);
+      throw error;
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsUploading(true);
+    
     try {
+      let imageUrl = formData.imageUrl;
+      let videoUrl = formData.videoUrl;
+      
+      // Upload image if file is selected
+      if (imageFile) {
+        imageUrl = await uploadImage(imageFile);
+      }
+      
+      // Upload video if file is selected
+      if (videoFile) {
+        videoUrl = await uploadVideo(videoFile);
+      }
+
+      const carouselData = {
+        title: formData.title || '',
+        description: formData.description || '',
+        order: Number(formData.order) || 0,
+        mediaType: formData.mediaType,
+        imageUrl: formData.mediaType === 'image' ? imageUrl : (imageUrl || ''),
+        videoUrl: formData.mediaType === 'video' ? videoUrl : (videoUrl || ''),
+        createdAt: item ? item.createdAt : new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+
       if (item) {
-        await updateDoc(doc(db, 'carousel', item.id), formData);
+        await updateDoc(doc(db, 'carousel', item.id), carouselData);
         alert('Carousel item updated successfully!');
       } else {
-        await addDoc(collection(db, 'carousel'), formData);
+        await addDoc(collection(db, 'carousel'), carouselData);
         alert('Carousel item added successfully!');
       }
       onSave();
       onClose();
+      // Reset form
+      setImageFile(null);
+      setVideoFile(null);
+      setImagePreview('');
+      setVideoPreview('');
     } catch (error) {
       console.error('Error saving carousel item:', error);
-      alert('Error saving carousel item');
+      alert('Error saving carousel item: ' + error.message);
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -744,9 +921,71 @@ const CarouselModal = ({ item, onClose, onSave }) => {
         </div>
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label>Image URL</label>
-            <input type="url" name="imageUrl" value={formData.imageUrl} onChange={handleChange} required />
+            <label>Media Type</label>
+            <select name="mediaType" value={formData.mediaType} onChange={handleChange} required>
+              <option value="image">Image</option>
+              <option value="video">Video</option>
+            </select>
           </div>
+
+          {formData.mediaType === 'image' ? (
+            <div className="form-group">
+              <label>Image</label>
+              <input 
+                type="file" 
+                name="imageFile" 
+                accept="image/*" 
+                onChange={handleChange}
+                style={{ marginBottom: '0.5rem' }}
+              />
+              {imagePreview && (
+                <div className="image-preview">
+                  <img src={imagePreview} alt="Preview" style={{ maxWidth: '100%', maxHeight: '200px', borderRadius: '8px' }} />
+                </div>
+              )}
+              <input 
+                type="url" 
+                name="imageUrl" 
+                value={formData.imageUrl} 
+                onChange={handleChange} 
+                placeholder="Or enter image URL"
+                style={{ marginTop: '0.5rem' }}
+              />
+              <small style={{ display: 'block', marginTop: '0.25rem', color: '#64748b' }}>
+                Upload an image file or provide an image URL
+              </small>
+            </div>
+          ) : (
+            <div className="form-group">
+              <label>Video</label>
+              <input 
+                type="file" 
+                name="videoFile" 
+                accept="video/*" 
+                onChange={handleChange}
+                style={{ marginBottom: '0.5rem' }}
+              />
+              {videoPreview && (
+                <div className="video-preview">
+                  <video src={videoPreview} controls style={{ maxWidth: '100%', maxHeight: '200px', borderRadius: '8px' }}>
+                    Your browser does not support the video tag.
+                  </video>
+                </div>
+              )}
+              <input 
+                type="url" 
+                name="videoUrl" 
+                value={formData.videoUrl} 
+                onChange={handleChange} 
+                placeholder="Or enter video URL"
+                style={{ marginTop: '0.5rem' }}
+              />
+              <small style={{ display: 'block', marginTop: '0.25rem', color: '#64748b' }}>
+                Upload a video file or provide a video URL
+              </small>
+            </div>
+          )}
+
           <div className="form-group">
             <label>Title</label>
             <input type="text" name="title" value={formData.title} onChange={handleChange} />
@@ -758,13 +997,16 @@ const CarouselModal = ({ item, onClose, onSave }) => {
           <div className="form-group">
             <label>Order (Display order)</label>
             <input type="number" name="order" value={formData.order} onChange={handleChange} min="0" />
+            <small style={{ display: 'block', marginTop: '0.25rem', color: '#64748b' }}>
+              Lower numbers appear first
+            </small>
           </div>
           <div className="modal-actions">
             <button type="button" className="cancel-btn" onClick={onClose}>
               Cancel
             </button>
-            <button type="submit" className="save-btn">
-              {item ? 'Update' : 'Add'} Item
+            <button type="submit" className="save-btn" disabled={isUploading}>
+              {isUploading ? 'Saving...' : (item ? 'Update' : 'Add') + ' Item'}
             </button>
           </div>
         </form>
@@ -848,6 +1090,272 @@ const EventDetailModal = ({ event, onClose, onEdit }) => {
           </div>
         </div>
       </div>
+    </div>
+  );
+};
+
+const CarouselPreviewModal = ({ item, onClose, onEdit }) => {
+  if (!item) return null;
+
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-content carousel-preview-modal" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-header">
+          <h2>Carousel Preview</h2>
+          <button className="close-btn" onClick={onClose}>
+            <FaTimes />
+          </button>
+        </div>
+        <div className="carousel-preview-content">
+          <div className="preview-media">
+            {item.mediaType === 'video' ? (
+              <video 
+                src={item.videoUrl || item.imageUrl} 
+                controls 
+                autoPlay
+                style={{ width: '100%', maxHeight: '500px', borderRadius: '12px' }}
+              >
+                Your browser does not support the video tag.
+              </video>
+            ) : (
+              <img 
+                src={item.imageUrl} 
+                alt={item.title || 'Carousel'} 
+                style={{ width: '100%', maxHeight: '500px', objectFit: 'contain', borderRadius: '12px' }}
+              />
+            )}
+            {item.mediaType === 'video' && (
+              <div className="media-type-indicator">
+                <span>Video Content</span>
+              </div>
+            )}
+          </div>
+          <div className="preview-info">
+            <h3>{item.title || 'Untitled'}</h3>
+            {item.description && (
+              <p className="preview-description">{item.description}</p>
+            )}
+            <div className="preview-meta">
+              <div className="meta-item">
+                <strong>Type:</strong> {item.mediaType === 'video' ? 'Video' : 'Image'}
+              </div>
+              <div className="meta-item">
+                <strong>Display Order:</strong> {item.order || 0}
+              </div>
+              {item.createdAt && (
+                <div className="meta-item">
+                  <strong>Created:</strong> {new Date(item.createdAt).toLocaleDateString()}
+                </div>
+              )}
+            </div>
+          </div>
+          <div className="modal-actions">
+            <button type="button" className="cancel-btn" onClick={onClose}>
+              Close
+            </button>
+            <button type="button" className="save-btn" onClick={() => onEdit(item)}>
+              <FaEdit /> Edit Item
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const BloodDonorsTab = ({ bloodDonors }) => {
+  // Group donors by blood group
+  const groupedDonors = bloodDonors.reduce((acc, donor) => {
+    const bg = donor.bloodGroup || 'Unknown';
+    if (!acc[bg]) {
+      acc[bg] = [];
+    }
+    acc[bg].push(donor);
+    return acc;
+  }, {});
+
+  // Sort blood groups
+  const bloodGroups = Object.keys(groupedDonors).sort();
+
+  const downloadPDF = () => {
+    // Dynamic import for jsPDF
+    import('jspdf').then((jsPDF) => {
+      import('jspdf-autotable').then((autoTable) => {
+        const { jsPDF } = jsPDF;
+        const doc = new jsPDF();
+        
+        // Title
+        doc.setFontSize(18);
+        doc.text('Blood Donors List - Mahathma Veliyancode', 14, 20);
+        doc.setFontSize(12);
+        doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 14, 30);
+        
+        let yPosition = 40;
+        
+        bloodGroups.forEach((bg) => {
+          const donors = groupedDonors[bg];
+          
+          // Blood Group Header
+          doc.setFontSize(14);
+          doc.setTextColor(220, 38, 38);
+          doc.text(`Blood Group: ${bg} (${donors.length} donors)`, 14, yPosition);
+          yPosition += 10;
+          
+          // Table data
+          const tableData = donors.map((donor, index) => [
+            index + 1,
+            `${donor.name || ''} ${donor.lastName || ''}`.trim(),
+            donor.mobile || 'N/A',
+            donor.email || 'N/A',
+            donor.address || 'N/A',
+            donor.gender || 'N/A',
+            donor.dob ? new Date(donor.dob).toLocaleDateString() : 'N/A'
+          ]);
+          
+          autoTable.default(doc, {
+            head: [['#', 'Name', 'Mobile', 'Email', 'Address', 'Gender', 'Date of Birth']],
+            body: tableData,
+            startY: yPosition,
+            styles: { fontSize: 8 },
+            headStyles: { fillColor: [220, 38, 38], textColor: 255 },
+            margin: { top: yPosition },
+          });
+          
+          yPosition = doc.lastAutoTable.finalY + 15;
+          
+          // Add new page if needed
+          if (yPosition > 270) {
+            doc.addPage();
+            yPosition = 20;
+          }
+        });
+        
+        doc.save('blood-donors-list.pdf');
+      });
+    });
+  };
+
+  const downloadExcel = () => {
+    // Dynamic import for xlsx
+    import('xlsx').then((XLSX) => {
+      const workbook = XLSX.utils.book_new();
+      
+      // Create a sheet for each blood group
+      bloodGroups.forEach((bg) => {
+        const donors = groupedDonors[bg];
+        const excelData = [
+          ['#', 'Name', 'Mobile', 'Email', 'Address', 'Gender', 'Date of Birth', 'Blood Group']
+        ];
+        
+        donors.forEach((donor, index) => {
+          excelData.push([
+            index + 1,
+            `${donor.name || ''} ${donor.lastName || ''}`.trim(),
+            donor.mobile || 'N/A',
+            donor.email || 'N/A',
+            donor.address || 'N/A',
+            donor.gender || 'N/A',
+            donor.dob ? new Date(donor.dob).toLocaleDateString() : 'N/A',
+            donor.bloodGroup || 'N/A'
+          ]);
+        });
+        
+        const worksheet = XLSX.utils.aoa_to_sheet(excelData);
+        XLSX.utils.book_append_sheet(workbook, worksheet, `Blood Group ${bg}`);
+      });
+      
+      // Create summary sheet
+      const summaryData = [
+        ['Blood Group', 'Number of Donors']
+      ];
+      bloodGroups.forEach((bg) => {
+        summaryData.push([bg, groupedDonors[bg].length]);
+      });
+      summaryData.push(['Total', bloodDonors.length]);
+      
+      const summarySheet = XLSX.utils.aoa_to_sheet(summaryData);
+      XLSX.utils.book_append_sheet(workbook, summarySheet, 'Summary');
+      
+      XLSX.writeFile(workbook, 'blood-donors-list.xlsx');
+    });
+  };
+
+  const getBloodGroupColor = (bg) => {
+    const colors = {
+      'A+': '#dc2626',
+      'A-': '#ea580c',
+      'B+': '#ca8a04',
+      'B-': '#16a34a',
+      'AB+': '#0891b2',
+      'AB-': '#7c3aed',
+      'O+': '#be185d',
+      'O-': '#2563eb',
+      'Unknown': '#64748b'
+    };
+    return colors[bg] || colors['Unknown'];
+  };
+
+  return (
+    <div className="blood-donors-tab">
+      <div className="section-header">
+        <h2>Blood Donors Management</h2>
+        <div className="download-buttons">
+          <button className="download-btn pdf-btn" onClick={downloadPDF}>
+            <FaFilePdf /> Download PDF
+          </button>
+          <button className="download-btn excel-btn" onClick={downloadExcel}>
+            <FaFileExcel /> Download Excel
+          </button>
+        </div>
+      </div>
+
+      {bloodDonors.length === 0 ? (
+        <div className="no-donors-message">
+          <p>No blood donors registered yet.</p>
+        </div>
+      ) : (
+        <div className="blood-donors-container">
+          {bloodGroups.map((bg) => {
+            const donors = groupedDonors[bg];
+            return (
+              <div key={bg} className="blood-group-section">
+                <div className="blood-group-header">
+                  <div className="blood-group-badge">
+                    <span className="blood-group-text">{bg}</span>
+                    <span className="donor-count">{donors.length} {donors.length === 1 ? 'Donor' : 'Donors'}</span>
+                  </div>
+                </div>
+                <div className="donors-grid">
+                  {donors.map((donor) => (
+                    <div key={donor.id} className="donor-card">
+                      <div className="donor-avatar" style={{ backgroundColor: getBloodGroupColor(bg) }}>
+                        {donor.name?.charAt(0).toUpperCase() || '?'}
+                      </div>
+                      <div className="donor-info">
+                        <h4>{donor.name} {donor.lastName || ''}</h4>
+                        <p className="donor-mobile">
+                          <strong>Mobile:</strong> {donor.mobile || 'N/A'}
+                        </p>
+                        <p className="donor-email">
+                          <strong>Email:</strong> {donor.email || 'N/A'}
+                        </p>
+                        <p className="donor-address">
+                          <strong>Address:</strong> {donor.address || 'N/A'}
+                        </p>
+                        {donor.gender && (
+                          <p className="donor-gender">
+                            <strong>Gender:</strong> {donor.gender}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 };
