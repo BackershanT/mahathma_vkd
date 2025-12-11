@@ -1,50 +1,30 @@
 import React, { useState, useContext } from 'react';
 import { AuthContext } from '../AuthContext/AuthContext';
 import MembershipCardModal from './MembershipCardModal';
-import { FaIdCard, FaSignOutAlt, FaTimes } from 'react-icons/fa';
+import { FaIdCard } from 'react-icons/fa';
 import './FloatingActionButton.css';
 
 const FloatingActionButton = () => {
-  const { currentUser, logout } = useContext(AuthContext);
+  const { currentUser } = useContext(AuthContext);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [showMenu, setShowMenu] = useState(false);
 
   if (!currentUser || currentUser.isAdmin) {
     return null; // Don't show FAB for admin or logged out users
   }
 
-  const handleLogout = () => {
-    if (window.confirm('Are you sure you want to logout?')) {
-      logout();
-      setShowMenu(false);
-      window.location.href = '/';
-    }
-  };
-
-  const handleCardClick = () => {
+  const handleClick = () => {
     setIsModalOpen(true);
-    setShowMenu(false);
   };
 
   return (
     <>
-      <div className={`fab-container ${showMenu ? 'menu-open' : ''}`}>
-        {showMenu && (
-          <div className="fab-menu">
-            <button className="fab-menu-item" onClick={handleCardClick}>
-              <FaIdCard /> Membership Card
-            </button>
-            <button className="fab-menu-item logout" onClick={handleLogout}>
-              <FaSignOutAlt /> Logout
-            </button>
-          </div>
-        )}
+      <div className="fab-container">
         <button
           className="fab-button"
-          onClick={() => setShowMenu(!showMenu)}
-          aria-label="User menu"
+          onClick={handleClick}
+          aria-label="Member Profile"
         >
-          {showMenu ? <FaTimes /> : <FaIdCard />}
+          <FaIdCard />
         </button>
       </div>
 

@@ -17,10 +17,10 @@ const JoinMission = () => {
         <p className="section-description">
           Be part of something bigger. Whether you want to become a member or contribute to our blood donation program, we welcome you.
         </p>
-        
+
         <div className="mission-cards">
-          <div className="mission-card membership-card">
-            <div className="card-icon">
+          <div className="mission-card">l̥
+            <div className="card-icon ">
               <FaUserPlus size={40} />
             </div>
             <h3>Become a Member</h3>
@@ -30,14 +30,14 @@ const JoinMission = () => {
             </button>
           </div>
 
-          <div className="mission-card donation-card">
+          <div className="mission-card">
             <div className="card-icon donation-icon">
               <FaTint size={40} />
             </div>
             <h3>Blood Donation Program</h3>
             <p>Register as a blood donor and save lives. Your contribution can make a critical difference in emergency situations.</p>
-            <button 
-              className="card-button donation-btn" 
+            <button
+              className="card-button donation-btn"
               onClick={async () => {
                 if (currentUser) {
                   try {
@@ -45,14 +45,14 @@ const JoinMission = () => {
                     const usersSnapshot = await getDocs(collection(db, 'users'));
                     let userDoc = null;
                     let userRef = null;
-                    
+
                     usersSnapshot.forEach((docSnapshot) => {
                       if (docSnapshot.data().email === currentUser.email) {
                         userDoc = docSnapshot;
                         userRef = doc(db, 'users', docSnapshot.id);
                       }
                     });
-                    
+
                     if (userDoc && userRef) {
                       await updateDoc(userRef, { isBloodDonor: true });
                       alert('You have been registered as a blood donor!');

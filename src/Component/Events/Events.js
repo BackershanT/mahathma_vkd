@@ -85,11 +85,13 @@ const dummyPastEvents = [
 ];
 
 const Events = () => {
+  // Force rebuild for CSS update
   const [activeTab, setActiveTab] = useState('upcoming');
   const [upcomingEvents, setUpcomingEvents] = useState([]);
   const [pastEvents, setPastEvents] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
+  const [totalIndicators, setTotalIndicators] = useState(1);
   const eventsGridRef = React.useRef(null);
   const navigate = useNavigate();
 
@@ -138,8 +140,8 @@ const Events = () => {
 
   const formatFullDate = (dateStr) => {
     const date = new Date(dateStr);
-    const months = ['January', 'February', 'March', 'April', 'May', 'June', 
-                    'July', 'August', 'September', 'October', 'November', 'December'];
+    const months = ['January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December'];
     const month = months[date.getMonth()];
     const day = date.getDate();
     const year = date.getFullYear();
@@ -147,32 +149,77 @@ const Events = () => {
   };
 
   const displayEvents = activeTab === 'upcoming' ? upcomingEvents : pastEvents;
-  
-  // Calculate number of pages (3 events per page)
-  const eventsPerPage = 3;
-  const totalPages = Math.ceil(displayEvents.length / eventsPerPage);
 
-  // Auto-scroll functionality - scroll by pages (3 cards at a time)
+  // Update indicators on resize and tab change
   useEffect(() => {
-    if (displayEvents.length <= eventsPerPage || isPaused || !eventsGridRef.current) return;
+    // Calculate visible cards and indicators
+    const calculateIndicators = () => {
+      if (!eventsGridRef.current || displayEvents.length === 0) return 1;
+
+      const container = eventsGridRef.current;
+      const cards = container.querySelectorAll('.event-card');
+      if (cards.length === 0) return 1;
+
+      const containerRect = container.getBoundingClientRect();
+      const firstCard = cards[0];
+      if (!firstCard) return 1;
+
+      const cardWidth = firstCard.getBoundingClientRect().width;
+      const gap = window.innerWidth <= 768 ? 24 : 32; // 1.5rem on mobile, 2rem on desktop
+      const visibleCards = Math.max(1, Math.floor(containerRect.width / (cardWidth + gap)));
+      return Math.ceil(displayEvents.length / visibleCards);
+    };
+
+    const updateIndicators = () => {
+      setTotalIndicators(calculateIndicators());
+    };
+
+    updateIndicators();
+    window.addEventListener('resize', updateIndicators);
+    return () => window.removeEventListener('resize', updateIndicators);
+  }, [displayEvents.length, activeTab]);
+
+  // Auto-scroll functionality - scroll by individual cards
+  useEffect(() => {
+    if (displayEvents.length <= 3 || isPaused || !eventsGridRef.current) return;
 
     const scrollInterval = setInterval(() => {
-      setCurrentIndex((prevIndex) => {
-        const nextIndex = (prevIndex + 1) % totalPages;
-        if (eventsGridRef.current) {
-          const containerWidth = eventsGridRef.current.offsetWidth;
-          const scrollAmount = containerWidth * nextIndex;
-          eventsGridRef.current.scrollTo({
+      if (eventsGridRef.current) {
+        const container = eventsGridRef.current;
+        const cards = container.querySelectorAll('.event-card');
+        if (cards.length === 0) return;
+
+        // Find which card is currently most visible
+        let currentCardIndex = 0;
+        let maxVisible = 0;
+        const containerRect = container.getBoundingClientRect();
+
+        cards.forEach((card, index) => {
+          const cardRect = card.getBoundingClientRect();
+          const visibleWidth = Math.min(cardRect.right, containerRect.right) - Math.max(cardRect.left, containerRect.left);
+          if (visibleWidth > maxVisible) {
+            maxVisible = visibleWidth;
+            currentCardIndex = index;
+          }
+        });
+
+        // Scroll to next card
+        const nextIndex = (currentCardIndex + 1) % cards.length;
+        const nextCard = cards[nextIndex];
+        if (nextCard) {
+          const cardRect = nextCard.getBoundingClientRect();
+          const scrollAmount = cardRect.left - containerRect.left + container.scrollLeft;
+
+          container.scrollTo({
             left: scrollAmount,
             behavior: 'smooth'
           });
         }
-        return nextIndex;
-      });
+      }
     }, 3000); // Auto-scroll every 3 seconds
 
     return () => clearInterval(scrollInterval);
-  }, [displayEvents.length, totalPages, isPaused, eventsPerPage]);
+  }, [displayEvents.length, isPaused]);
 
   // Reset index when tab changes
   useEffect(() => {
@@ -184,22 +231,61 @@ const Events = () => {
 
   const handleScroll = () => {
     if (eventsGridRef.current) {
-      const scrollLeft = eventsGridRef.current.scrollLeft;
-      const containerWidth = eventsGridRef.current.offsetWidth;
-      const newIndex = Math.round(scrollLeft / containerWidth);
-      setCurrentIndex(newIndex);
+      const container = eventsGridRef.current;
+      const cards = container.querySelectorAll('.event-card');
+      if (cards.length === 0) return;
+
+      const containerRect = container.getBoundingClientRect();
+      let mostVisibleIndex = 0;
+      let maxVisible = 0;
+
+      cards.forEach((card, index) => {
+        const cardRect = card.getBoundingClientRect();
+        const visibleWidth = Math.min(cardRect.right, containerRect.right) - Math.max(cardRect.left, containerRect.left);
+        if (visibleWidth > maxVisible) {
+          maxVisible = visibleWidth;
+          mostVisibleIndex = index;
+        }
+      });
+
+      // Calculate which page/indicator should be active
+      const firstCard = cards[0];
+      if (firstCard) {
+        const cardWidth = firstCard.getBoundingClientRect().width;
+        const gap = window.innerWidth <= 768 ? 24 : 32;
+        const visibleCards = Math.max(1, Math.floor(containerRect.width / (cardWidth + gap)));
+        const pageIndex = Math.floor(mostVisibleIndex / visibleCards);
+        setCurrentIndex(Math.min(pageIndex, totalIndicators - 1));
+      }
     }
   };
 
   const handleIndicatorClick = (index) => {
-    setCurrentIndex(index);
     if (eventsGridRef.current) {
-      const containerWidth = eventsGridRef.current.offsetWidth;
-      const scrollAmount = containerWidth * index;
-      eventsGridRef.current.scrollTo({
-        left: scrollAmount,
-        behavior: 'smooth'
-      });
+      const container = eventsGridRef.current;
+      const cards = container.querySelectorAll('.event-card');
+      if (cards.length === 0) return;
+
+      const containerRect = container.getBoundingClientRect();
+      const firstCard = cards[0];
+      if (firstCard) {
+        const cardWidth = firstCard.getBoundingClientRect().width;
+        const gap = window.innerWidth <= 768 ? 24 : 32;
+        const visibleCards = Math.max(1, Math.floor(containerRect.width / (cardWidth + gap)));
+        const targetCardIndex = Math.min(index * visibleCards, cards.length - 1);
+        const targetCard = cards[targetCardIndex];
+
+        if (targetCard) {
+          const cardRect = targetCard.getBoundingClientRect();
+          const scrollAmount = cardRect.left - containerRect.left + container.scrollLeft;
+
+          container.scrollTo({
+            left: scrollAmount,
+            behavior: 'smooth'
+          });
+          setCurrentIndex(index);
+        }
+      }
     }
   };
 
@@ -212,13 +298,13 @@ const Events = () => {
         </p>
 
         <div className="events-tabs">
-          <button 
+          <button
             className={`tab-button ${activeTab === 'upcoming' ? 'active' : ''}`}
             onClick={() => setActiveTab('upcoming')}
           >
             Upcoming Events
           </button>
-          <button 
+          <button
             className={`tab-button ${activeTab === 'past' ? 'active' : ''}`}
             onClick={() => setActiveTab('past')}
           >
@@ -226,55 +312,56 @@ const Events = () => {
           </button>
         </div>
 
-        <div 
+        <div
           className="events-wrapper"
           onMouseEnter={() => setIsPaused(true)}
           onMouseLeave={() => setIsPaused(false)}
         >
-          <div 
-            className="events-grid" 
+          <div
+            className="events-grid"
             ref={eventsGridRef}
             onScroll={handleScroll}
+            style={{ display: 'flex', flexDirection: 'row', flexWrap: 'nowrap', overflowX: 'auto' }}
           >
             {displayEvents.length > 0 ? (
-            displayEvents.map((event) => (
-              <div className="event-card" key={event.id}>
-                <div className="event-image-container">
-                  <img src={event.image || 'https://via.placeholder.com/400x250'} alt={event.title} />
-                </div>
-                <div className="event-content">
-                  <div className="event-date-row">
-                    <FaCalendar className="calendar-icon" />
-                    <span className="event-date">{formatFullDate(event.date)}</span>
+              displayEvents.map((event) => (
+                <div className="event-card" key={event.id}>
+                  <div className="event-image-container">
+                    <img src={event.image || 'https://via.placeholder.com/400x250'} alt={event.title} />
                   </div>
-                  <h3 className="event-title">{event.title}</h3>
-                  <p className="event-description">
-                    {event.description || 'Join us for this exciting community event.'}
-                  </p>
-                  {event.location && (
-                    <div className="event-location-row">
-                      <FaMapMarkerAlt className="location-icon" />
-                      <span className="event-location-text">{event.location}</span>
+                  <div className="event-content">
+                    <div className="event-date-row">
+                      <FaCalendar className="calendar-icon" />
+                      <span className="event-date">{formatFullDate(event.date)}</span>
                     </div>
-                  )}
-                  {activeTab === 'past' && (
-                    <button className="view-more-btn" onClick={() => handleViewDetails(event)}>
-                      View Details
-                    </button>
-                  )}
+                    <h3 className="event-title">{event.title}</h3>
+                    <p className="event-description">
+                      {event.description || 'Join us for this exciting community event.'}
+                    </p>
+                    {event.location && (
+                      <div className="event-location-row">
+                        <FaMapMarkerAlt className="location-icon" />
+                        <span className="event-location-text">{event.location}</span>
+                      </div>
+                    )}
+                    {activeTab === 'past' && (
+                      <button className="view-more-btn" onClick={() => handleViewDetails(event)}>
+                        View Details
+                      </button>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))
+              ))
             ) : (
               <div className="no-events">
                 <p>No {activeTab === 'upcoming' ? 'upcoming' : 'past'} events at the moment.</p>
               </div>
             )}
           </div>
-          
-          {displayEvents.length > eventsPerPage && (
+
+          {displayEvents.length > 1 && totalIndicators > 1 && (
             <div className="events-indicators">
-              {Array.from({ length: totalPages }).map((_, index) => (
+              {Array.from({ length: totalIndicators }).map((_, index) => (
                 <button
                   key={index}
                   className={`indicator-dot ${currentIndex === index ? 'active' : ''}`}

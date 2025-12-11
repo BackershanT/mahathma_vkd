@@ -40,6 +40,7 @@
   transition: transform 0.3s, box-shadow 0.3s;
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
 }
 
 .mission-card:hover {
@@ -50,6 +51,8 @@
 .card-icon {
   width: 80px;
   height: 80px;
+  min-width: 80px;
+  min-height: 80px;
   border-radius: 16px;
   background: #dbeafe;
   display: flex;
@@ -57,7 +60,9 @@
   justify-content: center;
   color: #2563eb;
   margin-bottom: 1.5rem;
+  flex-shrink: 0;
 }
+
 
 .donation-icon {
   background: #fee2e2;
@@ -71,7 +76,7 @@
   font-weight: 600;
 }
 
-.mission-card > p {
+.mission-card>p {
   font-size: 1rem;
   color: #64748b;
   line-height: 1.6;
@@ -191,4 +196,3 @@
     padding: 0.9rem 1.5rem;
   }
 }
-
