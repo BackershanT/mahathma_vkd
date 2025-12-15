@@ -248,7 +248,7 @@ const MembershipForm = () => {
     <div className="membership-form-page">
       <div className="membership-form-container">
         <div className="form-header">
-          <h1>Apply for Membership</h1>
+          <h1>Be a Member</h1>
           <p>Join our community and make a difference. Please fill out the form below.</p>
         </div>
 
@@ -491,6 +491,8 @@ const MembershipForm = () => {
     </div>
   );
 };
+
+
 
 export default MembershipForm;
 
