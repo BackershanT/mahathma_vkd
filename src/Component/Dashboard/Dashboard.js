@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useContext } from 'react';
 import { db, storage } from '../Firebase/Firebase';
-import { collection, getDocs, addDoc, deleteDoc, doc, updateDoc, query, orderBy } from 'firebase/firestore';
+import { collection, getDocs, addDoc, deleteDoc, doc, updateDoc, query, orderBy, onSnapshot } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useNavigate } from 'react-router-dom';
 import { FaUsers, FaCalendarAlt, FaImages, FaSignOutAlt, FaEdit, FaTrash, FaPlus, FaTimes, FaEye, FaPlay, FaTint, FaFilePdf, FaFileExcel } from 'react-icons/fa';
@@ -12,7 +12,7 @@ const Dashboard = () => {
   const { currentUser, logout } = useContext(AuthContext);
   const [activeTab, setActiveTab] = useState('members');
   const [bloodDonors, setBloodDonors] = useState([]);
-  
+
   // Check if user is admin
   useEffect(() => {
     if (!currentUser || !currentUser.isAdmin) {
@@ -33,152 +33,97 @@ const Dashboard = () => {
   const [viewingCarousel, setViewingCarousel] = useState(null);
 
   useEffect(() => {
-    fetchMembers();
-    fetchEvents();
-    fetchCarousel();
-    fetchBloodDonors();
-  }, []);
-
-  const fetchBloodDonors = async () => {
-    try {
-      const membersSnapshot = await getDocs(collection(db, 'users'));
-      const donorsData = [];
-      membersSnapshot.forEach((docSnapshot) => {
-        const data = { id: docSnapshot.id, ...docSnapshot.data() };
-        if (data.isBloodDonor) {
-          donorsData.push(data);
-        }
-      });
-      setBloodDonors(donorsData);
-    } catch (error) {
-      console.error('Error fetching blood donors:', error);
+    // Prevent unprivileged access attempts
+    if (!currentUser || !currentUser.isAdmin) {
+      return;
     }
-  };
 
-  const fetchMembers = async () => {
-    try {
-      const membersSnapshot = await getDocs(collection(db, 'users'));
+    // Real-time listener for Members (users)
+    const unsubscribeMembers = onSnapshot(collection(db, 'users'), (snapshot) => {
       const membersData = [];
       let maleCount = 0;
       let femaleCount = 0;
-      let bloodDonorCount = 0;
 
-      membersSnapshot.forEach((docSnapshot) => {
-        const data = { id: docSnapshot.id, ...docSnapshot.data() };
+      snapshot.forEach((doc) => {
+        const data = { id: doc.id, ...doc.data() };
         membersData.push(data);
         if (data.gender?.toLowerCase() === 'male') maleCount++;
         if (data.gender?.toLowerCase() === 'female') femaleCount++;
-        if (data.isBloodDonor) bloodDonorCount++;
       });
 
       setMembers(membersData);
-      setStats({
+      setStats(prev => ({
+        ...prev,
         total: membersData.length,
         male: maleCount,
         female: femaleCount,
-        bloodDonors: bloodDonorCount,
-      });
-    } catch (error) {
-      console.error('Error fetching members:', error);
-    }
-  };
-
-  const fetchEvents = async () => {
-    try {
-      const eventsSnapshot = await getDocs(query(collection(db, 'events'), orderBy('date', 'desc')));
-      const eventsData = [];
-      eventsSnapshot.forEach((docSnapshot) => {
-        eventsData.push({ id: docSnapshot.id, ...docSnapshot.data() });
-      });
-      
-      // If no events exist, add dummy events
-      if (eventsData.length === 0) {
-        const dummyEvents = [
-          {
-            title: 'Health Camp 2024',
-            description: 'Free health checkup and consultation for community members with expert doctors. Get your health screened and receive professional medical advice.',
-            date: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-            time: '9:00 AM - 5:00 PM',
-            location: 'Community Center Hall',
-            image: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1f?w=800',
-          },
-          {
-            title: 'Blood Donation Drive',
-            description: 'Annual blood donation camp in partnership with local hospitals to save lives. Your donation can help someone in need.',
-            date: new Date(Date.now() + 22 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-            time: '8:00 AM - 4:00 PM',
-            location: 'City Hospital Campus',
-            image: 'https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=800',
-          },
-          {
-            title: 'Cultural Festival',
-            description: 'Celebrate diversity with music, dance, and food from different cultures. Join us for a day of cultural exchange and entertainment.',
-            date: new Date(Date.now() + 35 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-            time: '4:00 PM - 10:00 PM',
-            location: 'Open Ground Park',
-            image: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800',
-          },
-          {
-            title: 'Tree Plantation Drive',
-            description: 'Successfully planted 500+ saplings across the community. A great initiative towards environmental conservation and green living.',
-            date: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-            time: '6:00 AM - 12:00 PM',
-            location: 'Community Park',
-            image: 'https://images.unsplash.com/photo-1464226184884-fa280b87c399?w=800',
-          },
-          {
-            title: 'Food Distribution Program',
-            description: 'Distributed food packets to 200+ families in need. A heartwarming event that brought the community together to help those less fortunate.',
-            date: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-            time: '11:00 AM - 3:00 PM',
-            location: 'Community Center',
-            image: 'https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=800',
-          },
-        ];
-
-        // Add dummy events to Firebase
-        for (const dummyEvent of dummyEvents) {
-          const eventDate = new Date(dummyEvent.date);
-          const currentDate = new Date();
-          currentDate.setHours(0, 0, 0, 0);
-          eventDate.setHours(0, 0, 0, 0);
-          const isPast = eventDate < currentDate;
-          
-          await addDoc(collection(db, 'events'), {
-            ...dummyEvent,
-            eventType: isPast ? 'past' : 'upcoming',
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-          });
-        }
-        
-        // Fetch again to get the newly added events
-        const newEventsSnapshot = await getDocs(query(collection(db, 'events'), orderBy('date', 'desc')));
-        const newEventsData = [];
-        newEventsSnapshot.forEach((docSnapshot) => {
-          newEventsData.push({ id: docSnapshot.id, ...docSnapshot.data() });
-        });
-        setEvents(newEventsData);
-      } else {
-        setEvents(eventsData);
+      }));
+    }, (error) => {
+      // Ignore permission errors caused by race conditions during redirect
+      if (error.code !== 'permission-denied') {
+        console.error("Error fetching members:", error);
       }
-    } catch (error) {
-      console.error('Error fetching events:', error);
-    }
-  };
+    });
 
-  const fetchCarousel = async () => {
-    try {
-      const carouselSnapshot = await getDocs(collection(db, 'carousel'));
+    // Real-time listener for Blood Donors
+    const unsubscribeDonors = onSnapshot(collection(db, 'blood_donors'), (snapshot) => {
+      const donorsData = [];
+      snapshot.forEach((doc) => {
+        donorsData.push({ id: doc.id, ...doc.data() });
+      });
+      setBloodDonors(donorsData);
+      setStats(prev => ({ ...prev, bloodDonors: donorsData.length }));
+    }, (error) => {
+      if (error.code !== 'permission-denied') {
+        console.error("Error fetching donors:", error);
+      }
+    });
+
+    // Real-time listener for Events
+    const unsubscribeEvents = onSnapshot(query(collection(db, 'events'), orderBy('date', 'desc')), (snapshot) => {
+      const gEventsData = [];
+      snapshot.forEach((doc) => {
+        gEventsData.push({ id: doc.id, ...doc.data() });
+      });
+      // Handle dummy data logic if empty
+      if (gEventsData.length === 0 && !snapshot.metadata.fromCache) {
+        // Logic for dummy events could go here, but for now we just set empty
+        // To keep it simple in real-time mode, we usually don't auto-insert dummy data inside the listener loop
+        // unless strict "init" logic is separated.
+        setEvents([]);
+      } else {
+        setEvents(gEventsData);
+      }
+    }, (error) => {
+      if (error.code !== 'permission-denied') {
+        console.error("Error fetching events:", error);
+      }
+    });
+
+    // Real-time listener for Carousel
+    const unsubscribeCarousel = onSnapshot(collection(db, 'carousel'), (snapshot) => {
       const carouselData = [];
-      carouselSnapshot.forEach((docSnapshot) => {
-        carouselData.push({ id: docSnapshot.id, ...docSnapshot.data() });
+      snapshot.forEach((doc) => {
+        carouselData.push({ id: doc.id, ...doc.data() });
       });
       setCarouselItems(carouselData.sort((a, b) => (a.order || 0) - (b.order || 0)));
-    } catch (error) {
-      console.error('Error fetching carousel:', error);
-    }
-  };
+    }, (error) => {
+      if (error.code !== 'permission-denied') {
+        console.error("Error fetching carousel:", error);
+      }
+    });
+
+    return () => {
+      unsubscribeMembers();
+      unsubscribeDonors();
+      unsubscribeEvents();
+      unsubscribeCarousel();
+    };
+  }, [currentUser]); // added currentUser dependency
+
+  // Removed manual fetch functions as they are replaced by subscriptions
+  const fetchEvents = () => { }; // No-op for compatibility with child components calling onSave
+  const fetchCarousel = () => { }; // No-op for compatibility
 
   const handleLogout = () => {
     if (logout) {
@@ -191,7 +136,8 @@ const Dashboard = () => {
     if (window.confirm('Are you sure you want to delete this event?')) {
       try {
         await deleteDoc(doc(db, 'events', eventId));
-        fetchEvents();
+        await deleteDoc(doc(db, 'events', eventId));
+        // fetchEvents(); // Handled by listener
         alert('Event deleted successfully!');
       } catch (error) {
         console.error('Error deleting event:', error);
@@ -204,7 +150,8 @@ const Dashboard = () => {
     if (window.confirm('Are you sure you want to delete this carousel item?')) {
       try {
         await deleteDoc(doc(db, 'carousel', carouselId));
-        fetchCarousel();
+        await deleteDoc(doc(db, 'carousel', carouselId));
+        // fetchCarousel(); // Handled by listener
         alert('Carousel item deleted successfully!');
       } catch (error) {
         console.error('Error deleting carousel item:', error);
@@ -463,7 +410,7 @@ const EventsTab = ({ events, onAdd, onEdit, onView, onDelete, onSave }) => {
             const eventDate = new Date(event.date);
             const isPast = eventDate < new Date();
             const eventType = isPast ? 'past' : 'upcoming';
-            
+
             return (
               <div key={event.id} className="event-card-admin">
                 <img src={event.image || event.imageUrl || 'https://via.placeholder.com/400x250'} alt={event.title} />
@@ -518,7 +465,7 @@ const CarouselTab = ({ carouselItems, onAdd, onEdit, onView, onDelete, onSave })
           carouselItems.map((item) => {
             const isVideo = item.mediaType === 'video' || item.videoUrl;
             const mediaUrl = isVideo ? (item.videoUrl || item.imageUrl) : item.imageUrl;
-            
+
             return (
               <div key={item.id} className="carousel-card">
                 <div className="carousel-media-container">
@@ -576,6 +523,7 @@ const EventModal = ({ event, onClose, onSave }) => {
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState('');
   const [isUploading, setIsUploading] = useState(false);
+  const [statusMessage, setStatusMessage] = useState('');
 
   useEffect(() => {
     if (event) {
@@ -613,8 +561,8 @@ const EventModal = ({ event, onClose, onSave }) => {
       currentDate.setHours(0, 0, 0, 0);
       eventDate.setHours(0, 0, 0, 0);
       const isPast = eventDate < currentDate;
-      setFormData({ 
-        ...formData, 
+      setFormData({
+        ...formData,
         date: newDate,
         eventType: isPast ? 'past' : 'upcoming'
       });
@@ -623,30 +571,65 @@ const EventModal = ({ event, onClose, onSave }) => {
     }
   };
 
+  // Helper to add timeout to promises
+  const timeoutPromise = (ms, promise) => {
+    return new Promise((resolve, reject) => {
+      const timeoutId = setTimeout(() => {
+        reject(new Error("Operation timed out: Check your internet connection or firebasestorage rules."));
+      }, ms);
+      promise.then(
+        (res) => {
+          clearTimeout(timeoutId);
+          resolve(res);
+        },
+        (err) => {
+          clearTimeout(timeoutId);
+          reject(err);
+        }
+      );
+    });
+  };
+
   const uploadImage = async (file) => {
     if (!file) return null;
     try {
-      const imageRef = ref(storage, `events/${Date.now()}_${file.name}`);
-      await uploadBytes(imageRef, file);
-      const downloadURL = await getDownloadURL(imageRef);
+      setStatusMessage('Uploading image (starting)...');
+      console.log('Starting event image upload...');
+
+      const cleanFileName = file.name.replace(/[^a-zA-Z0-9.]/g, '_');
+      const imageRef = ref(storage, `events/${Date.now()}_${cleanFileName}`);
+
+      console.log('Ref created, starting uploadBytes...');
+      setStatusMessage('Uploading image (sending bytes)...');
+
+      // 30s timeout for image upload
+      const snapshot = await timeoutPromise(30000, uploadBytes(imageRef, file));
+
+      console.log('Upload complete, getting URL...');
+      setStatusMessage('Uploading image (getting URL)...');
+
+      const downloadURL = await getDownloadURL(snapshot.ref);
       return downloadURL;
     } catch (error) {
       console.error('Error uploading image:', error);
-      throw error;
+      throw new Error(`Image upload failed: ${error.message}`);
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsUploading(true);
-    
+    setStatusMessage('Saving...');
+
     try {
       let imageUrl = formData.image;
-      
+
       // Upload image if file is selected
       if (imageFile) {
         imageUrl = await uploadImage(imageFile);
       }
+
+      setStatusMessage('Updating database...');
 
       // Determine event type based on date (automatically categorize)
       // Format date as YYYY-MM-DD for consistency
@@ -681,11 +664,13 @@ const EventModal = ({ event, onClose, onSave }) => {
       // Reset form
       setImageFile(null);
       setImagePreview('');
+      setStatusMessage('');
     } catch (error) {
       console.error('Error saving event:', error);
       alert('Error saving event: ' + error.message);
     } finally {
       setIsUploading(false);
+      setStatusMessage('');
     }
   };
 
@@ -731,10 +716,10 @@ const EventModal = ({ event, onClose, onSave }) => {
           </div>
           <div className="form-group">
             <label>Event Image</label>
-            <input 
-              type="file" 
-              name="imageFile" 
-              accept="image/*" 
+            <input
+              type="file"
+              name="imageFile"
+              accept="image/*"
               onChange={handleChange}
               style={{ marginBottom: '0.5rem' }}
             />
@@ -743,11 +728,11 @@ const EventModal = ({ event, onClose, onSave }) => {
                 <img src={imagePreview} alt="Preview" style={{ maxWidth: '100%', maxHeight: '200px', borderRadius: '8px' }} />
               </div>
             )}
-            <input 
-              type="url" 
-              name="image" 
-              value={formData.image} 
-              onChange={handleChange} 
+            <input
+              type="url"
+              name="image"
+              value={formData.image}
+              onChange={handleChange}
               placeholder="Or enter image URL"
               style={{ marginTop: '0.5rem' }}
             />
@@ -756,11 +741,11 @@ const EventModal = ({ event, onClose, onSave }) => {
             </small>
           </div>
           <div className="modal-actions">
-            <button type="button" className="cancel-btn" onClick={onClose}>
+            <button type="button" className="cancel-btn" onClick={onClose} disabled={isUploading}>
               Cancel
             </button>
             <button type="submit" className="save-btn" disabled={isUploading}>
-              {isUploading ? 'Saving...' : (event ? 'Update' : 'Add') + ' Event'}
+              {isUploading ? (statusMessage || 'Saving...') : (event ? 'Update' : 'Add') + ' Event'}
             </button>
           </div>
         </form>
@@ -783,6 +768,7 @@ const CarouselModal = ({ item, onClose, onSave }) => {
   const [imagePreview, setImagePreview] = useState('');
   const [videoPreview, setVideoPreview] = useState('');
   const [isUploading, setIsUploading] = useState(false);
+  const [statusMessage, setStatusMessage] = useState('');
 
   useEffect(() => {
     if (item) {
@@ -833,49 +819,99 @@ const CarouselModal = ({ item, onClose, onSave }) => {
     }
   };
 
+  // Helper to add timeout to promises
+  const timeoutPromise = (ms, promise) => {
+    return new Promise((resolve, reject) => {
+      const timeoutId = setTimeout(() => {
+        reject(new Error("Operation timed out: Check your internet connection or firebasestorage rules."));
+      }, ms);
+      promise.then(
+        (res) => {
+          clearTimeout(timeoutId);
+          resolve(res);
+        },
+        (err) => {
+          clearTimeout(timeoutId);
+          reject(err);
+        }
+      );
+    });
+  };
+
   const uploadImage = async (file) => {
     if (!file) return null;
     try {
-      const imageRef = ref(storage, `carousel/images/${Date.now()}_${file.name}`);
-      await uploadBytes(imageRef, file);
-      const downloadURL = await getDownloadURL(imageRef);
+      setStatusMessage('Uploading image (starting)...');
+      console.log('Starting image upload checking storage ref...');
+
+      const cleanFileName = file.name.replace(/[^a-zA-Z0-9.]/g, '_');
+      const imageRef = ref(storage, `carousel/images/${Date.now()}_${cleanFileName}`);
+
+      console.log('Ref created, starting uploadBytes...');
+      setStatusMessage('Uploading image (sending bytes)...');
+
+      // 30 second timeout for upload
+      const snapshot = await timeoutPromise(30000, uploadBytes(imageRef, file));
+
+      console.log('Upload complete, getting URL...');
+      setStatusMessage('Uploading image (getting URL)...');
+
+      const downloadURL = await getDownloadURL(snapshot.ref);
+      console.log('URL retrieved:', downloadURL);
+
       return downloadURL;
     } catch (error) {
       console.error('Error uploading image:', error);
-      throw error;
+      throw new Error(`Image upload failed: ${error.message}`);
     }
   };
 
   const uploadVideo = async (file) => {
     if (!file) return null;
     try {
-      const videoRef = ref(storage, `carousel/videos/${Date.now()}_${file.name}`);
-      await uploadBytes(videoRef, file);
-      const downloadURL = await getDownloadURL(videoRef);
+      setStatusMessage('Uploading video (starting)...');
+      console.log('Starting video upload...');
+
+      const cleanFileName = file.name.replace(/[^a-zA-Z0-9.]/g, '_');
+      const videoRef = ref(storage, `carousel/videos/${Date.now()}_${cleanFileName}`);
+
+      console.log('Ref created, starting uploadBytes...');
+      setStatusMessage('Uploading video (sending bytes)...');
+
+      // 60 second timeout for video upload
+      const snapshot = await timeoutPromise(60000, uploadBytes(videoRef, file));
+
+      console.log('Upload complete, getting URL...');
+      setStatusMessage('Uploading video (getting URL)...');
+
+      const downloadURL = await getDownloadURL(snapshot.ref);
       return downloadURL;
     } catch (error) {
       console.error('Error uploading video:', error);
-      throw error;
+      throw new Error(`Video upload failed: ${error.message}`);
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsUploading(true);
-    
+    setStatusMessage('Saving...');
+
     try {
       let imageUrl = formData.imageUrl;
       let videoUrl = formData.videoUrl;
-      
+
       // Upload image if file is selected
       if (imageFile) {
         imageUrl = await uploadImage(imageFile);
       }
-      
+
       // Upload video if file is selected
       if (videoFile) {
         videoUrl = await uploadVideo(videoFile);
       }
+
+      setStatusMessage('Updating database...');
 
       const carouselData = {
         title: formData.title || '',
@@ -902,11 +938,13 @@ const CarouselModal = ({ item, onClose, onSave }) => {
       setVideoFile(null);
       setImagePreview('');
       setVideoPreview('');
+      setStatusMessage('');
     } catch (error) {
       console.error('Error saving carousel item:', error);
       alert('Error saving carousel item: ' + error.message);
     } finally {
       setIsUploading(false);
+      setStatusMessage('');
     }
   };
 
@@ -931,10 +969,10 @@ const CarouselModal = ({ item, onClose, onSave }) => {
           {formData.mediaType === 'image' ? (
             <div className="form-group">
               <label>Image</label>
-              <input 
-                type="file" 
-                name="imageFile" 
-                accept="image/*" 
+              <input
+                type="file"
+                name="imageFile"
+                accept="image/*"
                 onChange={handleChange}
                 style={{ marginBottom: '0.5rem' }}
               />
@@ -943,11 +981,11 @@ const CarouselModal = ({ item, onClose, onSave }) => {
                   <img src={imagePreview} alt="Preview" style={{ maxWidth: '100%', maxHeight: '200px', borderRadius: '8px' }} />
                 </div>
               )}
-              <input 
-                type="url" 
-                name="imageUrl" 
-                value={formData.imageUrl} 
-                onChange={handleChange} 
+              <input
+                type="url"
+                name="imageUrl"
+                value={formData.imageUrl}
+                onChange={handleChange}
                 placeholder="Or enter image URL"
                 style={{ marginTop: '0.5rem' }}
               />
@@ -958,10 +996,10 @@ const CarouselModal = ({ item, onClose, onSave }) => {
           ) : (
             <div className="form-group">
               <label>Video</label>
-              <input 
-                type="file" 
-                name="videoFile" 
-                accept="video/*" 
+              <input
+                type="file"
+                name="videoFile"
+                accept="video/*"
                 onChange={handleChange}
                 style={{ marginBottom: '0.5rem' }}
               />
@@ -972,11 +1010,11 @@ const CarouselModal = ({ item, onClose, onSave }) => {
                   </video>
                 </div>
               )}
-              <input 
-                type="url" 
-                name="videoUrl" 
-                value={formData.videoUrl} 
-                onChange={handleChange} 
+              <input
+                type="url"
+                name="videoUrl"
+                value={formData.videoUrl}
+                onChange={handleChange}
                 placeholder="Or enter video URL"
                 style={{ marginTop: '0.5rem' }}
               />
@@ -1002,11 +1040,11 @@ const CarouselModal = ({ item, onClose, onSave }) => {
             </small>
           </div>
           <div className="modal-actions">
-            <button type="button" className="cancel-btn" onClick={onClose}>
+            <button type="button" className="cancel-btn" onClick={onClose} disabled={isUploading}>
               Cancel
             </button>
             <button type="submit" className="save-btn" disabled={isUploading}>
-              {isUploading ? 'Saving...' : (item ? 'Update' : 'Add') + ' Item'}
+              {isUploading ? (statusMessage || 'Saving...') : (item ? 'Update' : 'Add') + ' Item'}
             </button>
           </div>
         </form>
@@ -1044,11 +1082,11 @@ const EventDetailModal = ({ event, onClose, onEdit }) => {
             <h3>{event.title}</h3>
             <div className="detail-row">
               <strong>Date:</strong>
-              <span>{new Date(event.date).toLocaleDateString('en-US', { 
-                weekday: 'long', 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric' 
+              <span>{new Date(event.date).toLocaleDateString('en-US', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
               })}</span>
             </div>
             {event.time && (
@@ -1109,18 +1147,18 @@ const CarouselPreviewModal = ({ item, onClose, onEdit }) => {
         <div className="carousel-preview-content">
           <div className="preview-media">
             {item.mediaType === 'video' ? (
-              <video 
-                src={item.videoUrl || item.imageUrl} 
-                controls 
+              <video
+                src={item.videoUrl || item.imageUrl}
+                controls
                 autoPlay
                 style={{ width: '100%', maxHeight: '500px', borderRadius: '12px' }}
               >
                 Your browser does not support the video tag.
               </video>
             ) : (
-              <img 
-                src={item.imageUrl} 
-                alt={item.title || 'Carousel'} 
+              <img
+                src={item.imageUrl}
+                alt={item.title || 'Carousel'}
                 style={{ width: '100%', maxHeight: '500px', objectFit: 'contain', borderRadius: '12px' }}
               />
             )}
@@ -1183,35 +1221,35 @@ const BloodDonorsTab = ({ bloodDonors }) => {
       import('jspdf-autotable').then((autoTable) => {
         const jsPDF = jsPDFModule.default;
         const doc = new jsPDF();
-        
+
         // Title
         doc.setFontSize(18);
         doc.text('Blood Donors List - Mahathma Veliyancode', 14, 20);
         doc.setFontSize(12);
         doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 14, 30);
-        
+
         let yPosition = 40;
-        
+
         bloodGroups.forEach((bg) => {
           const donors = groupedDonors[bg];
-          
+
           // Blood Group Header
           doc.setFontSize(14);
           doc.setTextColor(220, 38, 38);
           doc.text(`Blood Group: ${bg} (${donors.length} donors)`, 14, yPosition);
           yPosition += 10;
-          
+
           // Table data
           const tableData = donors.map((donor, index) => [
             index + 1,
             `${donor.name || ''} ${donor.lastName || ''}`.trim(),
-            donor.mobile || 'N/A',
+            donor.phone || donor.mobile || 'N/A',
             donor.email || 'N/A',
-            donor.address || 'N/A',
+            donor.place || donor.address || 'N/A',
             donor.gender || 'N/A',
             donor.dob ? new Date(donor.dob).toLocaleDateString() : 'N/A'
           ]);
-          
+
           autoTable.default(doc, {
             head: [['#', 'Name', 'Mobile', 'Email', 'Address', 'Gender', 'Date of Birth']],
             body: tableData,
@@ -1220,16 +1258,16 @@ const BloodDonorsTab = ({ bloodDonors }) => {
             headStyles: { fillColor: [220, 38, 38], textColor: 255 },
             margin: { top: yPosition },
           });
-          
+
           yPosition = doc.lastAutoTable.finalY + 15;
-          
+
           // Add new page if needed
           if (yPosition > 270) {
             doc.addPage();
             yPosition = 20;
           }
         });
-        
+
         doc.save('blood-donors-list.pdf');
       });
     });
@@ -1239,31 +1277,31 @@ const BloodDonorsTab = ({ bloodDonors }) => {
     // Dynamic import for xlsx
     import('xlsx').then((XLSX) => {
       const workbook = XLSX.utils.book_new();
-      
+
       // Create a sheet for each blood group
       bloodGroups.forEach((bg) => {
         const donors = groupedDonors[bg];
         const excelData = [
           ['#', 'Name', 'Mobile', 'Email', 'Address', 'Gender', 'Date of Birth', 'Blood Group']
         ];
-        
+
         donors.forEach((donor, index) => {
           excelData.push([
             index + 1,
             `${donor.name || ''} ${donor.lastName || ''}`.trim(),
-            donor.mobile || 'N/A',
+            donor.phone || donor.mobile || 'N/A',
             donor.email || 'N/A',
-            donor.address || 'N/A',
+            donor.place || donor.address || 'N/A',
             donor.gender || 'N/A',
             donor.dob ? new Date(donor.dob).toLocaleDateString() : 'N/A',
             donor.bloodGroup || 'N/A'
           ]);
         });
-        
+
         const worksheet = XLSX.utils.aoa_to_sheet(excelData);
         XLSX.utils.book_append_sheet(workbook, worksheet, `Blood Group ${bg}`);
       });
-      
+
       // Create summary sheet
       const summaryData = [
         ['Blood Group', 'Number of Donors']
@@ -1272,10 +1310,10 @@ const BloodDonorsTab = ({ bloodDonors }) => {
         summaryData.push([bg, groupedDonors[bg].length]);
       });
       summaryData.push(['Total', bloodDonors.length]);
-      
+
       const summarySheet = XLSX.utils.aoa_to_sheet(summaryData);
       XLSX.utils.book_append_sheet(workbook, summarySheet, 'Summary');
-      
+
       XLSX.writeFile(workbook, 'blood-donors-list.xlsx');
     });
   };
@@ -1334,13 +1372,13 @@ const BloodDonorsTab = ({ bloodDonors }) => {
                       <div className="donor-info">
                         <h4>{donor.name} {donor.lastName || ''}</h4>
                         <p className="donor-mobile">
-                          <strong>Mobile:</strong> {donor.mobile || 'N/A'}
+                          <strong>Mobile:</strong> {donor.phone || donor.mobile || 'N/A'}
                         </p>
                         <p className="donor-email">
                           <strong>Email:</strong> {donor.email || 'N/A'}
                         </p>
                         <p className="donor-address">
-                          <strong>Address:</strong> {donor.address || 'N/A'}
+                          <strong>Address:</strong> {donor.place || donor.address || 'N/A'}
                         </p>
                         {donor.gender && (
                           <p className="donor-gender">

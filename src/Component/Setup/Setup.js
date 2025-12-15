@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { db } from '../Firebase/Firebase';
-import { collection, addDoc, getDocs, query, where } from 'firebase/firestore';
+import { db, auth } from '../Firebase/Firebase';
+import { doc, setDoc } from 'firebase/firestore';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
 import './Setup.css';
 
@@ -13,15 +14,26 @@ const Setup = () => {
     try {
       const adminEmail = 'admin@gmail.com';
       const adminPassword = '123456';
+      let user;
 
-      // Check if admin already exists
-      const usersSnapshot = await getDocs(query(collection(db, 'users'), where('email', '==', adminEmail)));
-      if (!usersSnapshot.empty) {
-        return { success: false, message: 'Admin already exists' };
+      try {
+        // Try to create the user in Auth
+        const userCredential = await createUserWithEmailAndPassword(auth, adminEmail, adminPassword);
+        user = userCredential.user;
+      } catch (authError) {
+        if (authError.code === 'auth/email-already-in-use') {
+          // If auth user exists, we might still need to create the firestore doc
+          // In a real setup, we'd probably just stop here, but for "Setup", let's try to fix the DB
+          console.log("Admin auth exists, checking DB...");
+          // We can't get the UID easily without signing in. 
+          // For this simple setup script, we'll assume failure if auth exists to avoid complexity.
+          return { success: false, message: 'Admin Authentication account already exists. data not written.' };
+        }
+        throw authError;
       }
 
-      // Store admin data in Firestore
-      await addDoc(collection(db, 'users'), {
+      // Store admin data in Firestore using the Auth UID
+      await setDoc(doc(db, 'users', user.uid), {
         name: 'Admin',
         lastName: 'User',
         email: adminEmail,
@@ -37,14 +49,18 @@ const Setup = () => {
         workplace: 'Mahathma Veliyancode',
         availability: 'Native',
         createdAt: new Date().toISOString(),
-        password: adminPassword, // Store password (in production, this should be hashed)
-        isAdmin: true,
+        // Password not stored in DB
+        isAdmin: true, // This is the ONE place we try to write isAdmin=true. 
+        // Note: This will FAIL if rules forbid ANY client writing isAdmin=true.
+        // Use Firebase Console to set your first admin if this fails.
         isBloodDonor: false,
+        uid: user.uid
       });
 
       return { success: true, message: 'Admin created successfully!' };
     } catch (error) {
-      return { success: false, message: error.message };
+      console.error(error);
+      return { success: false, message: 'Admin creation failed: ' + error.message };
     }
   };
 
@@ -52,15 +68,20 @@ const Setup = () => {
     try {
       const memberEmail = 'user@gmail.com';
       const memberPassword = '123456';
+      let user;
 
-      // Check if member already exists
-      const usersSnapshot = await getDocs(query(collection(db, 'users'), where('email', '==', memberEmail)));
-      if (!usersSnapshot.empty) {
-        return { success: false, message: 'Member already exists' };
+      try {
+        const userCredential = await createUserWithEmailAndPassword(auth, memberEmail, memberPassword);
+        user = userCredential.user;
+      } catch (authError) {
+        if (authError.code === 'auth/email-already-in-use') {
+          return { success: false, message: 'Member Authentication account already exists.' };
+        }
+        throw authError;
       }
 
       // Store member data in Firestore
-      await addDoc(collection(db, 'users'), {
+      await setDoc(doc(db, 'users', user.uid), {
         name: 'Test',
         lastName: 'User',
         email: memberEmail,
@@ -76,14 +97,16 @@ const Setup = () => {
         workplace: 'Test Company',
         availability: 'Native',
         createdAt: new Date().toISOString(),
-        password: memberPassword, // Store password (in production, this should be hashed)
+        // No password in DB
         isAdmin: false,
         isBloodDonor: false,
+        uid: user.uid
       });
 
       return { success: true, message: 'Member created successfully!' };
     } catch (error) {
-      return { success: false, message: error.message };
+      console.error(error);
+      return { success: false, message: 'Member creation failed: ' + error.message };
     }
   };
 
@@ -131,9 +154,9 @@ const Setup = () => {
           </div>
         </div>
 
-        <button 
-          className="setup-btn" 
-          onClick={handleSetup} 
+        <button
+          className="setup-btn"
+          onClick={handleSetup}
           disabled={isCreating}
         >
           {isCreating ? 'Creating...' : 'Create Accounts'}
@@ -145,8 +168,8 @@ const Setup = () => {
           </div>
         )}
 
-        <button 
-          className="back-btn" 
+        <button
+          className="back-btn"
           onClick={() => navigate('/login')}
         >
           Go to Login

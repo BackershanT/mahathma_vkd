@@ -1,0 +1,207 @@
+/* ... existing styles ... */
+.register-donor-section {
+    padding: 80px 20px;
+    background-color: #f8f9fa;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.register-donor-container {
+    max-width: 600px;
+    width: 100%;
+    margin: 0 auto;
+}
+
+.register-donor-card {
+    background: white;
+    padding: 40px;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    animation: fadeIn 0.5s ease-out;
+}
+
+.register-donor-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.blood-icon {
+    color: #e74c3c;
+    margin-bottom: 15px;
+    filter: drop-shadow(0 4px 6px rgba(231, 76, 60, 0.3));
+}
+
+.register-donor-header h2 {
+    color: #2c3e50;
+    font-size: 2rem;
+    margin-bottom: 10px;
+    font-weight: 700;
+}
+
+.register-donor-header p {
+    color: #64748b;
+    font-size: 1rem;
+}
+
+.donor-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    text-align: left;
+}
+
+.form-group label {
+    color: #2c3e50;
+    font-weight: 500;
+    font-size: 0.95rem;
+}
+
+.form-group input,
+.form-group select {
+    padding: 12px 16px;
+    border: 2px solid #e2e8f0;
+    border-radius: 10px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    outline: none;
+    background-color: #f8f9fa;
+    color: #334155;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    border-color: #e74c3c;
+    background-color: white;
+    box-shadow: 0 0 0 4px rgba(231, 76, 60, 0.1);
+}
+
+.submit-btn {
+    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+    color: white;
+    padding: 14px;
+    border: none;
+    border-radius: 10px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.submit-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(231, 76, 60, 0.3);
+}
+
+.submit-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* OTP Specific Styles */
+.otp-input-container {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin: 20px 0;
+}
+
+.otp-box {
+    width: 50px !important;
+    height: 55px;
+    text-align: center;
+    font-size: 1.5rem;
+    font-weight: 600;
+    padding: 0 !important;
+    border: 2px solid #cbd5e1 !important;
+    border-radius: 12px !important;
+    background: #fff !important;
+    transition: all 0.2s ease;
+}
+
+.otp-box:focus {
+    border-color: #e74c3c !important;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(231, 76, 60, 0.15) !important;
+}
+
+.otp-box:not(:placeholder-shown) {
+    border-color: #2c3e50;
+    background-color: #f8fafc !important;
+}
+
+#recaptcha-container {
+    margin: 10px auto;
+    display: flex;
+    justify-content: center;
+}
+
+.error-message {
+    background-color: #fee2e2;
+    color: #ef4444;
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.success-message {
+    background-color: #dcfce7;
+    color: #166534;
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (max-width: 640px) {
+    .register-donor-section {
+        padding: 40px 15px;
+    }
+
+    .register-donor-card {
+        padding: 25px;
+    }
+
+    .otp-input-container {
+        gap: 8px;
+    }
+
+    .otp-box {
+        width: 40px !important;
+        height: 45px;
+        font-size: 1.2rem;
+    }
+}

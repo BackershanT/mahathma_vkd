@@ -15,6 +15,7 @@ import { AuthProvider } from './Component/AuthContext/AuthContext';
 import Dashboard from './Component/Dashboard/Dashboard';
 import Setup from './Component/Setup/Setup';
 import FloatingActionButton from './Component/FloatingActionButton/FloatingActionButton';
+import RegisterDonor from './Component/RegisterDonor/RegisterDonor';
 
 function Home() {
   return (
@@ -42,21 +43,22 @@ function App() {
   return (
     <div className="App">
       <AuthProvider>
-      <Router>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<Signup />} />
-          <Route path="/eventdetails/:Id" element={<EventDetails />} />
-          <Route path="/membership" element={<MembershipCard />} />
-          <Route path="/membership-form" element={<MembershipForm />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/setup" element={<Setup />} />
+        <Router>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
+            <Route path="/eventdetails/:Id" element={<EventDetails />} />
+            <Route path="/membership" element={<MembershipCard />} />
+            <Route path="/membership-form" element={<MembershipForm />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/setup" element={<Setup />} />
+            <Route path="/register-donor" element={<RegisterDonor />} />
 
 
 
-        </Routes>
-      </Router>
+          </Routes>
+        </Router>
       </AuthProvider>
       {/* <Router>
         <Routes>

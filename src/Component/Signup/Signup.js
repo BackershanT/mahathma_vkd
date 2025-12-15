@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import './Signup.css';
-import { db } from '../Firebase/Firebase';
-import { collection, addDoc } from 'firebase/firestore';
+import { db, auth } from '../Firebase/Firebase';
+import { doc, setDoc } from 'firebase/firestore';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
 
 
@@ -40,6 +41,10 @@ const Signup = () => {
     }
 
     try {
+      // Create user in Firebase Auth
+      const userCredential = await createUserWithEmailAndPassword(auth, form.email, form.password);
+      const user = userCredential.user;
+
       // Prepare data
       const userData = {
         name: form.name,
@@ -57,13 +62,13 @@ const Signup = () => {
         status: form.status,
         availability: form.availability,
         createdAt: new Date().toISOString(),
-        password: form.password, // Store password (in production, this should be hashed)
-        isAdmin: false,
-        isBloodDonor: false,
+        // Password should not be stored in Firestore
+        // isAdmin and isBloodDonor fields omitted to prevent permission errors
+        uid: user.uid,
       };
 
-      // Store in Firestore
-      await addDoc(collection(db, 'users'), userData);
+      // Store in Firestore using the Auth UID
+      await setDoc(doc(db, 'users', user.uid), userData);
 
       alert('Signup successful! Please login with your credentials.');
       navigate('/login');
