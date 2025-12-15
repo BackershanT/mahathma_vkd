@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useContext } from 'react';
 import { db, storage } from '../Firebase/Firebase';
-import { collection, getDocs, addDoc, deleteDoc, doc, updateDoc, query, orderBy, onSnapshot } from 'firebase/firestore';
+import { collection, addDoc, deleteDoc, doc, updateDoc, query, orderBy, onSnapshot } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useNavigate } from 'react-router-dom';
 import { FaUsers, FaCalendarAlt, FaImages, FaSignOutAlt, FaEdit, FaTrash, FaPlus, FaTimes, FaEye, FaPlay, FaTint, FaFilePdf, FaFileExcel } from 'react-icons/fa';
